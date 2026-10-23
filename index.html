@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supply Chain Management · Sessions 1–2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070B1A; --cyan:#22D3EE; --violet:#8B5CF6; --pink:#F472B6;
+  --lime:#4ADE80; --red:#FB7185; --gold:#FBBF24;
+  --grad:linear-gradient(100deg,#22D3EE,#8B5CF6,#F472B6);
+  --glass:rgba(255,255,255,.05); --glass-brd:rgba(255,255,255,.12);
+  --ink:#E7ECFF; --muted:#9AA6C9; --spring:cubic-bezier(.22,1.4,.36,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Space Grotesk',system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.bg-fx{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.5;animation:drift 26s var(--spring) infinite alternate}
+.orb.a{width:520px;height:520px;background:#1e3a8a;top:-160px;left:-120px}
+.orb.b{width:460px;height:460px;background:#6d28d9;bottom:-180px;right:-100px;animation-duration:32s}
+.orb.c{width:380px;height:380px;background:#0e7490;top:40%;left:55%;animation-duration:29s}
+.orb.d{width:300px;height:300px;background:#be185d;top:12%;right:18%;animation-duration:35s;opacity:.35}
+@keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(60px,50px) scale(1.15)}}
+.grid-fx{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background-image:linear-gradient(rgba(139,92,246,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,.09) 1px,transparent 1px);
+  background-size:46px 46px;-webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.7),transparent 60%);mask-image:linear-gradient(to bottom,rgba(0,0,0,.7),transparent 60%)}
+/* ===== header w/ game HUD ===== */
+header{position:sticky;top:0;z-index:50;padding:2px;margin:12px;border-radius:20px;background:var(--grad);background-size:300% 300%;animation:flow 8s linear infinite}
+@keyframes flow{to{background-position:300% 0}}
+.hdr-in{background:rgba(9,13,28,.88);backdrop-filter:blur(14px);border-radius:18px;padding:12px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;line-height:1.1;min-width:180px}
+.brand .k{font-size:11px;letter-spacing:.26em;color:var(--cyan);font-weight:600}
+.brand .t{font-size:18px;font-weight:700}
+.brand .s{font-size:11px;color:var(--muted)}
+.hud{margin-left:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.lvl{display:flex;flex-direction:column;gap:3px;min-width:170px}
+.lvl .top{display:flex;justify-content:space-between;font-size:11px}
+.lvl .top .ti{font-weight:700;color:#fff}
+.lvl .top .xp{font-family:'JetBrains Mono',monospace;color:var(--gold)}
+.lvl .bar{height:8px;border-radius:8px;background:rgba(255,255,255,.09);overflow:hidden}
+.lvl .bar i{display:block;height:100%;width:0;border-radius:8px;background:var(--grad);background-size:200% 100%;animation:shim 2.5s linear infinite;transition:width .6s var(--spring)}
+@keyframes shim{to{background-position:200% 0}}
+.chip{display:flex;align-items:center;gap:6px;background:var(--glass);border:1px solid var(--glass-brd);border-radius:12px;padding:7px 12px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;transition:.3s}
+.chip.streak{color:var(--gold)}
+.chip.streak.t1{border-color:rgba(251,191,36,.45);box-shadow:0 0 14px rgba(251,191,36,.22)}
+.chip.streak.t2{border-color:rgba(251,146,60,.7);box-shadow:0 0 20px rgba(251,146,60,.38);color:#FDBA74}
+.chip.streak.t3{border-color:rgba(244,114,182,.85);box-shadow:0 0 28px rgba(244,114,182,.5);color:#FBCFE8;animation:pulseHot 1.1s ease-in-out infinite alternate}
+@keyframes pulseHot{to{transform:scale(1.07)}}
+.chip.badge,.chip.snd{cursor:pointer}
+.chip.badge{color:var(--cyan)}
+.chip.snd{color:var(--pink)}
+.chip.cmap{color:var(--lime);cursor:pointer}
+.chip.cmap:hover{border-color:rgba(74,222,128,.6)}
+.chip.snd.off{color:var(--muted);opacity:.65}
+.chip .lab{font-size:10px;letter-spacing:.12em;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-weight:600}
+/* ===== layout ===== */
+.wrap{display:grid;grid-template-columns:290px 1fr;gap:20px;padding:6px 18px 96px;max-width:1320px;margin:0 auto}
+aside{position:sticky;top:104px;align-self:start;max-height:calc(100vh - 124px);overflow-y:auto;padding-right:4px}
+aside::-webkit-scrollbar{width:6px}aside::-webkit-scrollbar-thumb{background:rgba(139,92,246,.4);border-radius:6px}
+.side-h{font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin:4px 0 10px 6px}
+.pbar{height:8px;border-radius:8px;background:rgba(255,255,255,.07);overflow:hidden;margin:0 6px 16px}
+.pbar i{display:block;height:100%;width:0;border-radius:8px;background:var(--grad);background-size:200% 100%;animation:shim 2.5s linear infinite;transition:width .6s var(--spring)}
+.topic{display:flex;align-items:center;gap:10px;padding:11px 12px;margin-bottom:7px;border-radius:13px;background:var(--glass);border:1px solid transparent;cursor:pointer;transition:.25s;font-size:13.5px}
+.topic:hover{border-color:var(--glass-brd);transform:translateX(3px)}
+.topic .idx{width:24px;height:24px;flex:0 0 24px;border-radius:8px;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;background:rgba(255,255,255,.08);color:var(--muted)}
+.topic.done .idx{background:var(--grad);color:#08111f}
+.topic .nm{flex:1;line-height:1.2;display:flex;flex-direction:column;gap:2px;min-width:0}
+.topic .nm small{font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.topic .flame{font-style:normal;font-size:12px}
+.topic .sc{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--cyan)}
+.topic.done{border-color:rgba(74,222,128,.34)}
+.topic.hot{border-color:rgba(251,191,36,.3)}
+main{min-width:0}
+.card{background:var(--glass);border:1px solid var(--glass-brd);border-radius:20px;padding:26px 28px;backdrop-filter:blur(10px);margin-bottom:18px;animation:popIn .5s var(--spring) both}
+@keyframes popIn{from{opacity:0;transform:translateY(22px) scale(.96)}to{opacity:1;transform:none}}
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);font-weight:600;margin-bottom:6px}
+h1.tt{font-size:26px;margin:0 0 4px;font-weight:700}
+.sub{color:var(--muted);font-size:14px;line-height:1.6}
+.sub b{color:#D6DDF7}
+.srcrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.src{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 11px;border-radius:999px;background:rgba(139,92,246,.14);border:1px solid rgba(139,92,246,.45);color:#d6ccff}
+.watch{margin-top:14px;background:rgba(251,113,133,.09);border:1px solid rgba(251,113,133,.45);border-left:4px solid var(--red);border-radius:12px;padding:14px 16px}
+.watch h5{margin:0 0 4px;color:var(--red);font-size:14px} .watch p{margin:0;font-size:13.5px;color:#ffd9e0;line-height:1.5}
+/* ===== buttons / mcq ===== */
+.btn{border:0;font-family:inherit;font-weight:600;cursor:pointer;border-radius:12px;transition:.25s;font-size:14px}
+.btn-grad{background:var(--grad);background-size:200% auto;color:#08111f;padding:12px 24px;box-shadow:0 6px 24px rgba(139,92,246,.35)}
+.btn-grad:hover{background-position:100% center;transform:translateY(-2px)}
+.btn-ghost{background:rgba(255,255,255,.06);border:1px solid var(--glass-brd);color:var(--ink);padding:11px 20px}
+.btn-ghost:hover{border-color:var(--cyan);color:#fff}
+.row-btns{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:20px}
+.mcq{margin-top:8px}.mcq .q{font-size:16px;font-weight:600;margin-bottom:8px;line-height:1.5}
+.mcq .q b{color:#fff}
+.givens{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}
+.givens span{font-family:'JetBrains Mono',monospace;font-size:11.5px;padding:4px 9px;border-radius:8px;background:rgba(34,211,238,.09);border:1px solid rgba(34,211,238,.28);color:#bfe9f4}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.05em;padding:3px 10px;border-radius:999px;margin:0 6px 10px 0}
+.tag.concept{background:rgba(34,211,238,.14);color:var(--cyan);border:1px solid rgba(34,211,238,.4)}
+.tag.apply{background:rgba(251,191,36,.14);color:var(--gold);border:1px solid rgba(251,191,36,.4)}
+.tag.calc{background:rgba(74,222,128,.14);color:var(--lime);border:1px solid rgba(74,222,128,.45)}
+.tag.case{background:rgba(244,114,182,.16);color:var(--pink);border:1px solid rgba(244,114,182,.5)}
+.tag.easy{background:rgba(74,222,128,.13);color:var(--lime)}.tag.medium{background:rgba(251,191,36,.13);color:var(--gold)}.tag.hard{background:rgba(251,113,133,.13);color:var(--red)}
+.tag.trap{background:rgba(139,92,246,.2);color:#ddd0ff;border:1px solid rgba(139,92,246,.6);animation:trapGlow 2.2s ease-in-out infinite alternate}
+@keyframes trapGlow{to{box-shadow:0 0 14px rgba(139,92,246,.55)}}
+.opts{display:grid;gap:10px;margin-top:6px}
+.opt{text-align:left;background:rgba(255,255,255,.04);border:1px solid var(--glass-brd);border-radius:12px;padding:14px 16px;cursor:pointer;font-family:inherit;font-size:14.5px;color:var(--ink);transition:.18s;position:relative;line-height:1.45}
+.opt:hover:not(:disabled){border-color:var(--cyan);transform:translateX(3px)}.opt:disabled{cursor:default}
+.opt .lt{font-family:'JetBrains Mono',monospace;color:var(--violet);font-weight:700;margin-right:10px}
+.opt.correct{border-color:var(--lime);background:rgba(74,222,128,.16);box-shadow:0 0 34px rgba(74,222,128,.4);animation:popBig .6s var(--spring)}
+.opt.wrong{border-color:var(--red);background:rgba(251,113,133,.2);box-shadow:0 0 34px rgba(251,113,133,.4);animation:shakeHard .55s}.opt.dim{opacity:.32}
+@keyframes popBig{0%{transform:scale(1)}30%{transform:scale(1.075)}55%{transform:scale(.99)}75%{transform:scale(1.03)}100%{transform:scale(1)}}
+@keyframes shakeHard{0%,100%{transform:translateX(0) rotate(0)}12%{transform:translateX(-14px) rotate(-1.4deg)}26%{transform:translateX(14px) rotate(1.4deg)}42%{transform:translateX(-11px) rotate(-1deg)}58%{transform:translateX(11px) rotate(1deg)}74%{transform:translateX(-6px)}88%{transform:translateX(6px)}}
+.why{margin-top:14px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.4);border-radius:12px;padding:14px 16px;opacity:0;transform:translateY(8px);transition:.4s;max-height:0;overflow:hidden}
+.why.show{opacity:1;transform:none;max-height:900px}
+.why h5{margin:0 0 4px;color:var(--gold);font-size:13px}.why p{margin:0 0 8px;font-size:13.5px;color:#ffeec4;line-height:1.6}
+.why p:last-child{margin-bottom:0}
+.why .work{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#ffe0a3;background:rgba(0,0,0,.28);border-radius:8px;padding:9px 11px;margin:8px 0;line-height:1.7;overflow-x:auto;white-space:pre-wrap}
+.floater{position:fixed;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:28px;pointer-events:none;z-index:999;text-shadow:0 3px 14px rgba(0,0,0,.6);animation:rise 1.25s var(--spring) forwards}
+@keyframes rise{from{opacity:1;transform:translateY(0) scale(.6)}to{opacity:0;transform:translateY(-110px) scale(1.6)}}
+/* ===== BIG REACTION TEXT ===== */
+.bigcall{position:fixed;left:50%;top:26%;transform:translateX(-50%);z-index:1000;pointer-events:none;font-weight:700;
+  font-size:clamp(38px,9vw,86px);letter-spacing:-.01em;text-align:center;white-space:nowrap;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  animation:callIn 1.6s var(--spring) forwards;filter:drop-shadow(0 0 32px rgba(139,92,246,.75))}
+.bigcall.bad{background:linear-gradient(100deg,#FB7185,#F43F5E,#FDA4AF);-webkit-background-clip:text;background-clip:text;
+  filter:drop-shadow(0 0 34px rgba(251,113,133,.8));animation:callBad 1.5s cubic-bezier(.2,1.3,.4,1) forwards}
+@keyframes callIn{0%{opacity:0;transform:translateX(-50%) scale(.25) rotate(-9deg)}
+  18%{opacity:1;transform:translateX(-50%) scale(1.28) rotate(3deg)}
+  32%{transform:translateX(-50%) scale(1) rotate(-1.5deg)}
+  44%{transform:translateX(-50%) scale(1.1) rotate(0deg)}
+  80%{opacity:1;transform:translateX(-50%) scale(1.02)}
+  100%{opacity:0;transform:translateX(-50%) scale(1.14) translateY(-46px)}}
+@keyframes callBad{0%{opacity:0;transform:translateX(-50%) scale(2.2) rotate(6deg)}
+  16%{opacity:1;transform:translateX(-50%) scale(.9) rotate(-4deg)}
+  26%{transform:translateX(-50%) scale(1.12) rotate(3deg)}
+  38%{transform:translateX(-50%) scale(.98) rotate(-2deg)}
+  50%{transform:translateX(-50%) scale(1.04) rotate(0deg)}
+  82%{opacity:1}
+  100%{opacity:0;transform:translateX(-50%) scale(.86) translateY(34px)}}
+/* ===== GIANT STAMPS — the exaggerated reaction ===== */
+.mega{position:fixed;left:50%;top:47%;z-index:999;pointer-events:none;user-select:none;line-height:1;
+  font-size:clamp(150px,33vw,330px);filter:drop-shadow(0 22px 48px rgba(0,0,0,.75))}
+.mega.down{animation:megaDown 1.5s cubic-bezier(.18,.85,.3,1) forwards}
+@keyframes megaDown{
+  0%{opacity:0;transform:translate(-50%,-160%) scale(.35) rotate(-42deg)}
+  15%{opacity:1;transform:translate(-50%,-50%) scale(1.42) rotate(9deg)}
+  25%{transform:translate(-50%,-50%) scale(1.02) rotate(-7deg)}
+  36%{transform:translate(-50%,-50%) scale(1.24) rotate(5deg)}
+  47%{transform:translate(-50%,-50%) scale(1.08) rotate(-3deg)}
+  58%{transform:translate(-50%,-50%) scale(1.15) rotate(0deg)}
+  78%{opacity:.95;transform:translate(-50%,-50%) scale(1.12)}
+  100%{opacity:0;transform:translate(-50%,26%) scale(.82) rotate(17deg)}}
+.mega.up{animation:megaUp 1.25s cubic-bezier(.2,1.35,.35,1) forwards}
+@keyframes megaUp{
+  0%{opacity:0;transform:translate(-50%,-50%) scale(.15) rotate(-16deg)}
+  20%{opacity:1;transform:translate(-50%,-50%) scale(1.3) rotate(7deg)}
+  34%{transform:translate(-50%,-50%) scale(1) rotate(-4deg)}
+  48%{transform:translate(-50%,-50%) scale(1.14) rotate(0deg)}
+  72%{opacity:.9}
+  100%{opacity:0;transform:translate(-50%,-130%) scale(1.3) rotate(6deg)}}
+/* ===== flashes / vignettes ===== */
+.flash{position:fixed;inset:0;z-index:997;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(255,255,255,.34),transparent 62%);animation:flashF .55s ease-out forwards}
+@keyframes flashF{to{opacity:0}}
+.greenflash{position:fixed;inset:0;z-index:996;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(74,222,128,.30),transparent 64%);animation:flashF .6s ease-out forwards}
+.redflash{position:fixed;inset:0;z-index:996;pointer-events:none;background:radial-gradient(circle at 50% 45%,rgba(251,113,133,.34),transparent 58%);animation:flashF .7s ease-out forwards}
+.vignette{position:fixed;inset:0;z-index:996;pointer-events:none;box-shadow:inset 0 0 190px 60px rgba(244,63,94,.75);animation:vig .95s ease-out forwards}
+@keyframes vig{0%{opacity:0}14%{opacity:1}100%{opacity:0}}
+.vignette.good{box-shadow:inset 0 0 180px 54px rgba(74,222,128,.62);animation-duration:.85s}
+.shakeit{animation:bodyShake .48s}
+@keyframes bodyShake{0%,100%{transform:translate(0,0)}12%{transform:translate(-13px,4px) rotate(-.5deg)}26%{transform:translate(13px,-4px) rotate(.5deg)}40%{transform:translate(-10px,3px)}54%{transform:translate(10px,-3px)}68%{transform:translate(-6px,2px)}84%{transform:translate(6px,-2px)}}
+.zoomit{animation:bodyZoom .5s var(--spring)}
+@keyframes bodyZoom{0%,100%{transform:scale(1)}35%{transform:scale(1.014)}}
+/* ===== crackers ===== */
+.spark{position:fixed;z-index:998;pointer-events:none;animation:crkX var(--d) linear forwards}
+.spark i{display:block;border-radius:50%;animation:crkY var(--d) cubic-bezier(.14,.72,.36,1) forwards, crkF var(--d) ease-in forwards}
+@keyframes crkX{from{transform:translateX(0)}to{transform:translateX(var(--tx))}}
+@keyframes crkY{0%{transform:translateY(0)}58%{transform:translateY(var(--ty))}100%{transform:translateY(calc(var(--ty) + 96px))}}
+@keyframes crkF{0%,55%{opacity:1}100%{opacity:0}}
+.boom{position:fixed;z-index:998;pointer-events:none;border:3px solid #fff;border-radius:50%;margin:0;animation:crkR .68s cubic-bezier(.1,.7,.3,1) forwards}
+@keyframes crkR{from{transform:translate(-50%,-50%) scale(.05);opacity:.98}to{transform:translate(-50%,-50%) scale(1);opacity:0}}
+.rocket{position:fixed;z-index:998;pointer-events:none;width:4px;height:16px;border-radius:3px;margin-left:-2px;animation:crkL var(--rd) cubic-bezier(.25,.5,.4,1) forwards}
+@keyframes crkL{from{transform:translateY(0) scaleY(1.35);opacity:.15}60%{opacity:1}to{transform:translateY(var(--ry)) scaleY(.7);opacity:.85}}
+/* ===== thumbs — the shower ===== */
+.tdown{position:fixed;z-index:998;pointer-events:none;user-select:none;line-height:1;filter:drop-shadow(0 3px 9px rgba(0,0,0,.6))}
+.tdown.pop{animation:tdPop var(--d) cubic-bezier(.2,.7,.35,1) forwards}
+@keyframes tdPop{0%{opacity:0;transform:translate(0,0) rotate(0deg) scale(.25)}
+  12%{opacity:1}
+  100%{opacity:0;transform:translate(var(--tx),var(--ty)) rotate(var(--rot)) scale(1.25)}}
+.tdown.rain{animation:tdRain var(--d) linear forwards}
+@keyframes tdRain{0%{opacity:0;transform:translateY(-40px) rotate(0deg)}
+  9%{opacity:1}
+  86%{opacity:1}
+  100%{opacity:0;transform:translateY(var(--ty)) rotate(var(--rot))}}
+.confetti{position:fixed;width:11px;height:15px;top:-20px;z-index:998;pointer-events:none;border-radius:2px}
+/* ===== toast ===== */
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%) translateY(-160px);z-index:1001;background:rgba(9,13,28,.95);border:1px solid var(--gold);border-radius:14px;padding:12px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,.5);transition:transform .5s var(--spring);max-width:92vw}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast .em{font-size:26px}.toast .tt{font-weight:700}.toast .td{font-size:12px;color:var(--muted)}
+/* ===== quiz ===== */
+.qgroup-h{display:flex;align-items:center;gap:12px;margin:26px 2px 12px;scroll-margin-top:110px}
+.qgroup-h .gi{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-weight:700;background:var(--grad);color:#08111f;font-size:13px}
+.qgroup-h .gt{font-size:17px;font-weight:700}.qgroup-h .gc{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+.qcard{background:var(--glass);border:1px solid var(--glass-brd);border-radius:16px;padding:20px 22px;margin-bottom:14px;backdrop-filter:blur(8px);transition:box-shadow .35s,border-color .35s}
+.qcard.hitgood{border-color:rgba(74,222,128,.55);box-shadow:0 0 40px rgba(74,222,128,.22)}
+.qcard.hitbad{border-color:rgba(251,113,133,.55);box-shadow:0 0 40px rgba(251,113,133,.22)}
+.qnum{font-family:'JetBrains Mono',monospace;color:var(--muted);font-size:12px;margin-bottom:6px;display:flex;gap:10px;align-items:center}
+.footbar{position:fixed;bottom:0;left:0;right:0;z-index:60;padding:10px 18px;background:rgba(9,13,28,.92);backdrop-filter:blur(14px);border-top:1px solid var(--glass-brd);display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.footbar .fp{flex:1;min-width:160px;display:flex;flex-direction:column;gap:5px}
+.footbar .fp .lbl{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.footbar .fp .bar{height:7px;border-radius:7px;background:rgba(255,255,255,.08);overflow:hidden}
+.footbar .fp .bar i{display:block;height:100%;width:0;border-radius:7px;background:var(--grad);transition:width .5s var(--spring)}
+.ring-wrap{display:flex;gap:30px;align-items:center;flex-wrap:wrap;justify-content:center}
+.ring{position:relative;width:200px;height:200px}.ring svg{transform:rotate(-90deg)}
+.ring .mid{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring .mid .big{font-size:44px;font-weight:700;font-family:'JetBrains Mono',monospace;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.ring .mid .sm{font-size:12px;color:var(--muted);letter-spacing:.1em}
+.grade{font-size:24px;font-weight:700;margin:4px 0}
+.meters{margin-top:24px;display:grid;gap:12px}
+.meter .top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}.meter .top .sc{font-family:'JetBrains Mono',monospace;color:var(--cyan)}
+.meter .bar{height:9px;border-radius:9px;background:rgba(255,255,255,.07);overflow:hidden}.meter .bar i{display:block;height:100%;width:0;border-radius:9px;background:var(--grad);transition:width .8s var(--spring)}
+/* ===== badges panel ===== */
+.ovl{position:fixed;inset:0;z-index:200;background:rgba(4,7,18,.72);backdrop-filter:blur(6px);display:grid;place-items:start center;padding:80px 16px 40px;overflow-y:auto;animation:fadeIn .25s ease both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.ovl .card{max-width:720px;width:100%;margin:0}
+.ovl #cmapOvl,.ovl.wide .card{max-width:900px}
+#cmapOvl .card{max-width:900px}
+.ovl .x{position:absolute;top:18px;right:20px;font-size:26px;line-height:1;color:var(--muted);cursor:pointer;background:none;border:0;font-family:inherit}
+.ovl .x:hover{color:#fff}
+.badgegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:14px}
+.bcard{background:rgba(255,255,255,.03);border:1px solid var(--glass-brd);border-radius:14px;padding:14px;text-align:center;opacity:.45;transition:.3s}
+.bcard.unlocked{opacity:1;border-color:rgba(251,191,36,.5);box-shadow:0 0 22px rgba(251,191,36,.12)}
+.bcard .em{font-size:30px}.bcard .bn{font-weight:700;font-size:13.5px;margin-top:6px}.bcard .bd{font-size:11.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+/* ===== mix map (cheat-sheet) ===== */
+.cm-block{margin-top:22px}
+.cm-block h4{margin:0 0 3px;font-size:15px;color:#fff}
+.cm-block .cm-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 10px}
+.cm-scroll{overflow-x:auto;border:1px solid var(--glass-brd);border-radius:12px}
+.cm-scroll table{border-collapse:collapse;width:100%;min-width:520px}
+.cm-scroll td{padding:9px 12px;font-size:12.8px;line-height:1.5;border-top:1px solid rgba(255,255,255,.07);vertical-align:top}
+.cm-scroll tr:first-child td{border-top:0}
+.cm-scroll td:first-child{font-weight:600;color:var(--cyan);white-space:nowrap;background:rgba(34,211,238,.05)}
+.cm-scroll td small{color:var(--muted);font-weight:400;font-size:10.5px}
+.cm-scroll td b{color:var(--gold)}
+.hidden{display:none!important}
+@media(max-width:880px){.wrap{grid-template-columns:1fr;padding:6px 12px 104px}aside{position:static;max-height:none;order:2;margin-top:22px}}
+@media(max-width:620px){
+  header{margin:8px;border-radius:16px}
+  .hdr-in{padding:9px 12px;gap:8px 10px;border-radius:14px}
+  .brand{min-width:0;flex:1 1 120px}
+  .brand .k{font-size:8.5px;letter-spacing:.14em}
+  .brand .t{font-size:14.5px}
+  .brand .s,.tagline{display:none}
+  .hud{margin-left:auto;width:auto;gap:8px}
+  .lvl{min-width:0;width:70px;gap:2px}
+  .lvl .top{justify-content:flex-end}
+  .lvl .top .ti{display:none}
+  .lvl .top .xp{font-size:10px}
+  .lvl .bar{height:6px}
+  .chip{padding:5px 8px;font-size:12.5px;gap:4px}
+  .chip .lab{display:none}
+  .card{padding:20px 16px}
+  .qcard{padding:16px 14px}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.05s!important}}
+
+/* scope switch + focus states on the section list */
+.topic.scope{border-bottom:1px dashed var(--glass-brd)}
+.topic.on{background:rgba(34,211,238,.10);box-shadow:inset 3px 0 0 var(--cyan)}
+.topic.off{opacity:.42}
+.topic.pulse{animation:pulseit .6s ease}
+@keyframes pulseit{0%,100%{transform:none}40%{transform:translateX(4px)}}
+/* ===== mode toggle ===== */
+.mtog{display:flex;gap:4px;background:rgba(255,255,255,.05);border:1px solid var(--glass-brd);border-radius:13px;padding:4px}
+.mtog button{border:0;background:transparent;color:var(--muted);font-family:inherit;font-weight:600;font-size:12.5px;
+  padding:7px 14px;border-radius:10px;cursor:pointer;transition:.25s;white-space:nowrap}
+.mtog button.on{background:var(--grad);color:#08111f;box-shadow:0 4px 16px rgba(139,92,246,.35)}
+.mtog button:not(.on):hover{color:#fff}
+/* ===== lesson steps ===== */
+.lstep{margin:0 0 16px;animation:popIn .45s var(--spring) both}
+.lstep h4{margin:0 0 7px;font-size:15.5px;color:#fff;display:flex;align-items:center;gap:8px}
+.lstep h4 .n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);border:1px solid rgba(34,211,238,.4);
+  background:rgba(34,211,238,.1);border-radius:7px;padding:2px 7px;flex:0 0 auto}
+.lstep p{margin:0;font-size:14.5px;line-height:1.65;color:#D6DDF7}
+.lstep p b{color:#fff}
+.fcard{background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.45);border-radius:15px;padding:16px 18px;margin:0 0 16px}
+.fcard .pill{display:block;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#fff;
+  text-align:center;padding:10px 6px;overflow-x:auto;white-space:nowrap}
+.fcard .leg{margin-top:12px;border-top:1px solid rgba(139,92,246,.3);padding-top:11px;display:grid;gap:7px}
+.fcard .leg div{display:flex;gap:11px;font-size:13.5px;line-height:1.5;color:#d9d0ff}
+.fcard .leg b.sym{font-family:'JetBrains Mono',monospace;color:var(--violet);flex:0 0 132px;font-weight:700}
+.ltab{margin:0 0 16px}
+.ltab h4{margin:0 0 9px;font-size:15px;color:#fff}
+.ltab .sc{overflow-x:auto;border:1px solid var(--glass-brd);border-radius:14px}
+.ltab table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:440px}
+.ltab th{background:rgba(255,255,255,.07);color:var(--cyan);text-align:left;padding:10px 13px;font-size:11.5px;
+  letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.ltab td{padding:10px 13px;border-top:1px solid rgba(255,255,255,.08);color:#D6DDF7;line-height:1.5;vertical-align:top}
+.ltab td b{color:#fff}
+/* ===== live calculator ===== */
+.calc{background:rgba(34,211,238,.07);border:1px solid rgba(34,211,238,.4);border-radius:15px;padding:16px 18px;margin:0 0 16px}
+.calc h4{margin:0 0 4px;font-size:14.5px;color:var(--cyan)}
+.calc .hint{font-size:12.5px;color:var(--muted);margin:0 0 13px;line-height:1.5}
+.cin{display:grid;gap:12px;margin-bottom:13px}
+.cin label{display:flex;align-items:center;gap:11px;font-size:13.5px;color:#D6DDF7;flex-wrap:wrap}
+.cin label .nm{flex:1 1 150px;min-width:0}
+.cin input[type=range]{flex:2 1 170px;accent-color:var(--cyan);min-width:110px}
+.cin input[type=number]{flex:0 0 108px;background:rgba(0,0,0,.3);border:1px solid var(--glass-brd);border-radius:9px;
+  color:#fff;font-family:'JetBrains Mono',monospace;font-size:13.5px;padding:7px 10px;width:108px}
+.cin input[type=number]:focus{outline:0;border-color:var(--cyan)}
+.cin .val{font-family:'JetBrains Mono',monospace;font-size:13.5px;color:var(--gold);flex:0 0 78px;text-align:right}
+.cout{background:rgba(0,0,0,.3);border-radius:11px;padding:13px 15px;font-family:'JetBrains Mono',monospace;
+  font-size:13px;line-height:1.75;color:#bfe9f4;white-space:pre-wrap;overflow-x:auto}
+.cout .big{display:block;font-size:19px;color:#fff;font-weight:700;margin-top:7px}
+.cout .vd{display:block;margin-top:9px;padding-top:9px;border-top:1px solid rgba(255,255,255,.14);
+  font-family:'Space Grotesk',sans-serif;font-size:13.5px;line-height:1.55;white-space:normal}
+.cout .vd.ok{color:var(--lime)}.cout .vd.warn{color:var(--gold)}.cout .vd.bad{color:var(--red)}
+/* ===== lesson nav ===== */
+.lnav{display:flex;gap:11px;flex-wrap:wrap;align-items:center;margin-top:20px;padding-top:18px;border-top:1px solid var(--glass-brd)}
+.lnav .sp{flex:1}
+.topic .chk{font-size:12px;color:var(--lime);opacity:0;transition:.3s}
+.topic.learned .chk{opacity:1}
+.topic.learned{border-color:rgba(74,222,128,.32)}
+.kbd{font-family:'JetBrains Mono',monospace;font-size:11px;border:1px solid var(--glass-brd);border-bottom-width:2px;border-radius:4px;padding:1px 5px;opacity:.85}
+
+/* ===== case-study box — the multi-part scenario questions ===== */
+.casebox{background:rgba(244,114,182,.08);border:1px solid rgba(244,114,182,.42);border-left:4px solid var(--pink);
+  border-radius:14px;padding:16px 18px;margin:22px 2px 12px;animation:popIn .45s var(--spring) both}
+.casebox .cl{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--pink);font-weight:700}
+.casebox h4{margin:5px 0 8px;font-size:16px;color:#fff}
+.casebox p{margin:0 0 8px;font-size:13.8px;line-height:1.62;color:#F5D9E6}
+.casebox p:last-child{margin-bottom:0}
+.casebox ul{margin:8px 0 0;padding-left:20px;font-size:13.5px;line-height:1.6;color:#F5D9E6}
+.casebox li{margin-bottom:5px}
+.casebox b{color:#fff}
+/* ===== written paper ===== */
+.pq{background:var(--glass);border:1px solid var(--glass-brd);border-radius:16px;padding:20px 22px;margin-bottom:16px;backdrop-filter:blur(8px)}
+.pq .ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:9px}
+.pq .pn{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+.pq .mk{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 10px;border-radius:999px;
+  background:rgba(251,191,36,.14);color:var(--gold);border:1px solid rgba(251,191,36,.42);margin-left:auto}
+.pq .pqt{font-size:15.5px;line-height:1.6;color:#fff;font-weight:600;margin-bottom:8px}
+.pq .pqt b{color:var(--cyan)}
+.pq .parts{margin:10px 0 0;padding-left:20px;font-size:14px;line-height:1.65;color:#D6DDF7}
+.pq .parts li{margin-bottom:6px}
+.ans{margin-top:14px;background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.4);border-radius:13px;
+  padding:0 16px;max-height:0;overflow:hidden;opacity:0;transition:.45s}
+.ans.show{opacity:1;max-height:6000px;padding:15px 16px}
+.ans h5{margin:0 0 7px;color:var(--lime);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.ans p{margin:0 0 9px;font-size:13.8px;line-height:1.65;color:#CFEFD8}
+.ans p:last-child{margin-bottom:0}
+.ans b{color:#fff}
+.ans .work{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:#d5ffe4;background:rgba(0,0,0,.3);
+  border-radius:9px;padding:10px 12px;margin:9px 0;line-height:1.75;overflow-x:auto;white-space:pre-wrap}
+.ans .rub{margin:11px 0 0;padding:11px 13px;border-radius:10px;background:rgba(251,191,36,.09);border:1px solid rgba(251,191,36,.34)}
+.ans .rub h6{margin:0 0 5px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.ans .rub ul{margin:0;padding-left:18px;font-size:13px;line-height:1.6;color:#ffeec4}
+.ans .rub li{margin-bottom:3px}
+.pq .btn-rev{margin-top:12px}
+/* ===== supply & demand diagram ===== */
+.dsg{margin:12px 0 4px;background:rgba(0,0,0,.26);border:1px solid var(--glass-brd);border-radius:13px;padding:12px;overflow-x:auto}
+.dsg svg{display:block;margin:0 auto;max-width:100%;height:auto}
+.dsg .cap{font-size:12px;color:var(--muted);text-align:center;margin-top:7px;line-height:1.5}
+/* ===== exam-day panel ===== */
+.plan{display:grid;gap:11px;margin-top:14px}
+.pstep{display:flex;gap:13px;align-items:flex-start;background:rgba(255,255,255,.04);border:1px solid var(--glass-brd);
+  border-radius:13px;padding:13px 15px}
+.pstep .pi{flex:0 0 30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--grad);
+  color:#08111f;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px}
+.pstep .pt{font-size:14px;line-height:1.55;color:#D6DDF7}
+.pstep .pt b{color:#fff}
+/* mode toggle gets a third button — let it wrap on small screens */
+.mtog{flex-wrap:wrap}
+@media(max-width:620px){.mtog button{padding:6px 9px;font-size:11.5px}}
+
+/* =========================================================================
+   SLIMMER HEADER + THE MAP BUTTON
+   The map is the single most useful thing in the app, so it gets a real
+   button of its own between the title and the mode toggle — never a chip
+   in the HUD, and never label-less on a phone. Everything else in the bar
+   loses a few pixels to pay for it.
+   ========================================================================= */
+header{margin:8px;border-radius:16px;padding:2px}
+.hdr-in{padding:7px 12px;gap:10px 12px;border-radius:14px}
+.brand{min-width:0;flex:0 1 auto;line-height:1.15}
+.brand .k{font-size:9px;letter-spacing:.2em}
+.brand .t{font-size:15px}
+.brand .s{display:none}
+.hud{gap:9px}
+.lvl{min-width:120px;gap:2px}
+.lvl .top{font-size:10px}
+.lvl .bar{height:6px}
+.chip{padding:5px 9px;font-size:13px;gap:5px;border-radius:10px}
+.chip .lab{font-size:9px;letter-spacing:.1em}
+.mtog{padding:3px;border-radius:11px}
+.mtog button{padding:6px 11px;font-size:12px;border-radius:9px}
+
+/* the map button itself */
+.mapbtn{display:flex;align-items:center;gap:9px;cursor:pointer;border:0;font-family:inherit;
+  padding:8px 16px 8px 13px;border-radius:13px;color:#08111f;
+  background:var(--grad);background-size:220% auto;
+  box-shadow:0 5px 20px rgba(139,92,246,.45);transition:.25s var(--spring);
+  animation:mapPulse 2.6s ease-in-out infinite}
+.mapbtn:hover{background-position:100% center;transform:translateY(-2px) scale(1.04);
+  box-shadow:0 9px 30px rgba(139,92,246,.65);animation:none}
+.mapbtn:active{transform:translateY(0) scale(.98)}
+.mapbtn .mi{font-size:22px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+.mapbtn .mt{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15}
+.mapbtn .mt b{font-size:13.5px;font-weight:700;letter-spacing:.09em}
+.mapbtn .mt small{font-size:9.5px;font-weight:600;opacity:.72;letter-spacing:.04em}
+@keyframes mapPulse{
+  0%,100%{box-shadow:0 5px 20px rgba(139,92,246,.45)}
+  50%{box-shadow:0 5px 26px rgba(34,211,238,.75),0 0 0 4px rgba(34,211,238,.16)}}
+
+/* the header is shorter now, so the sticky offsets come up with it.
+   Scoped above 880px, where the sidebar is actually sticky — below that the
+   earlier breakpoint drops it to static and this must not clip it. */
+@media(min-width:881px){aside{top:76px;max-height:calc(100vh - 96px)}}
+.qgroup-h{scroll-margin-top:86px}
+
+@media(max-width:620px){
+  header{margin:6px}
+  .hdr-in{padding:6px 9px;gap:7px 8px}
+  .brand .t{font-size:13.5px}
+  .mapbtn{padding:6px 12px 6px 10px;gap:7px;border-radius:11px}
+  .mapbtn .mi{font-size:18px}
+  .mapbtn .mt b{font-size:12px}
+  .mapbtn .mt small{display:none}
+}
+/* =========================================================================
+   EXAM-PATTERN LAYER — caselets with data tables, and written answers.
+   The real End Term paper hands you a table and asks you to read it, so the
+   table has to look like a table, not like prose.
+   ========================================================================= */
+.caselet{background:rgba(244,114,182,.07);border:1px solid rgba(244,114,182,.4);border-left:4px solid var(--pink);
+  border-radius:16px;padding:18px 20px;margin:26px 2px 14px;animation:popIn .45s var(--spring) both;scroll-margin-top:86px}
+.caselet .cl{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--pink);font-weight:700}
+.caselet h4{margin:5px 0 9px;font-size:17px;color:#fff}
+.caselet .brief{font-size:13.8px;line-height:1.62;color:#F5D9E6}
+.caselet .brief b{color:#fff}
+.caselet .brief p{margin:0 0 7px}
+.caselet .brief p:last-child{margin-bottom:0}
+.caselet .facts{display:flex;flex-wrap:wrap;gap:7px;margin:11px 0 0}
+.caselet .facts span{font-family:'JetBrains Mono',monospace;font-size:11.5px;padding:5px 10px;border-radius:9px;
+  background:rgba(0,0,0,.3);border:1px solid rgba(244,114,182,.35);color:#ffd9ea}
+/* data tables */
+.dtab{margin:14px 0 0}
+.dtab .cap{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pink);font-weight:700;margin:0 0 7px}
+.dtab .sc{overflow-x:auto;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(0,0,0,.28)}
+.dtab table{border-collapse:collapse;width:100%;min-width:440px;font-family:'JetBrains Mono',monospace;font-size:12.5px}
+.dtab th{background:rgba(255,255,255,.07);color:var(--cyan);text-align:left;padding:9px 12px;font-size:11px;
+  letter-spacing:.06em;text-transform:uppercase;font-weight:700;white-space:nowrap;font-family:'Space Grotesk',sans-serif}
+.dtab td{padding:8px 12px;border-top:1px solid rgba(255,255,255,.08);color:#E7ECFF;white-space:nowrap}
+.dtab tr td:first-child{color:#fff;font-weight:700;font-family:'Space Grotesk',sans-serif}
+.dtab tr:hover td{background:rgba(255,255,255,.035)}
+.dtab td.num{text-align:right}
+/* written (open-ended) questions */
+.openq{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.42);border-radius:16px;padding:20px 22px;margin-bottom:14px}
+.openq .oh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.openq .on{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+.openq .om{font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:3px 10px;border-radius:999px;
+  background:rgba(251,191,36,.15);color:var(--gold);border:1px solid rgba(251,191,36,.45);margin-left:auto}
+.openq .oq{font-size:15.5px;line-height:1.6;color:#fff;font-weight:600}
+.openq .hint{font-size:12.5px;color:var(--muted);margin:9px 0 0;line-height:1.55}
+@media(max-width:620px){
+  .caselet{padding:14px 14px;margin:20px 0 12px}
+  .dtab table{font-size:11.5px;min-width:380px}
+  .dtab th,.dtab td{padding:7px 9px}
+  .openq{padding:16px 14px}
+}</style>
+</head>
+<body>
+<div class="bg-fx"><div class="orb a"></div><div class="orb b"></div><div class="orb c"></div><div class="orb d"></div></div>
+<div class="grid-fx"></div>
+
+<header>
+  <div class="hdr-in">
+    <div class="brand">
+      <span class="k">Supply Chain for Managers</span>
+      <span class="t">SCM Quiz<span class="tagline"> · demand into fulfilment</span></span>
+    </div>
+    <button class="mapbtn" id="hMap" title="The Map — the whole course on one page">
+      <span class="mi">📋</span>
+      <span class="mt"><b>THE MAP</b><small>full cheat-sheet</small></span>
+    </button>
+    <div class="mtog" id="mTog"></div>
+    <div class="hud">
+      <div class="lvl">
+        <div class="top"><span class="ti" id="hLvl">Intern</span><span class="xp" id="hXp">0 XP</span></div>
+        <div class="bar"><i id="hBar"></i></div>
+      </div>
+      <div class="chip streak" id="hStreak"><span id="hStreakEm">🔥</span><span id="hStreakN">0</span><span class="lab">streak</span></div>
+      <div class="chip badge" id="hBadge" title="View badges"><span>🏅</span><span id="hBadgeN">0</span><span class="lab">badges</span></div>
+      <div class="chip snd" id="hSnd" title="Sound on / off"><span id="hSndEm">🔊</span><span class="lab">sound</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <aside>
+    <div class="side-h" id="sideH">Sections</div>
+    <div class="pbar"><i id="pbar"></i></div>
+    <div id="topicList"></div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast"><span class="em" id="toEm">🏅</span><div><div class="tt" id="toTt"></div><div class="td" id="toTd"></div></div></div>
+
+<script>
+/* =========================================================================
+   SCM Quiz — built on the reusable quiz template
+   ~/projects/quiz-template · see SPEC.md for the authoring rules
+
+   Modules switch on automatically from the data that exists:
+     CASES   → ✍ Exam Paper     (caselets + data tables + written answers)
+     QUIZ    → ⚙ Practice Quiz  (standalone MCQ bank, needs TOPICS)
+     LESSONS → ◈ Prep Material  (lessons + live calculators, needs TOPICS)
+     PAPER   → ✎ Written Paper  (long-form questions + model answers)
+     CMAP    → 📋 THE MAP        (cheat-sheet overlay)
+   ========================================================================= */
+/* ---------- tiny helpers, loaded before everything else ---------- */
+const $=s=>document.querySelector(s), el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e;};
+const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const G={xp:0, streak:0, best:0, badges:{}};
+
+/* =========================================================================
+   SOUND — synthesised with WebAudio, no files, no network.
+   The context is created lazily on the first click, which satisfies autoplay.
+   ========================================================================= */
+let AC=null, SOUND=true;
+try{ if(localStorage.getItem('quiz_sound')==='0') SOUND=false; }catch(e){}
+function ac(){
+  if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } }
+  if(AC.state==='suspended') AC.resume();
+  return AC;
+}
+function tone(freq,at,dur,type,vol,glideTo){
+  const c=ac(); if(!c) return;
+  const t0=c.currentTime+at;
+  const o=c.createOscillator(), g=c.createGain();
+  o.type=type||'sine'; o.frequency.setValueAtTime(freq,t0);
+  if(glideTo) o.frequency.exponentialRampToValueAtTime(Math.max(20,glideTo),t0+dur);
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(vol||0.18,t0+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(t0); o.stop(t0+dur+0.03);
+}
+function noise(at,dur,vol,freq){
+  const c=ac(); if(!c) return;
+  const t0=c.currentTime+at, n=Math.floor(c.sampleRate*dur);
+  const buf=c.createBuffer(1,n,c.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<n;i++) d[i]=(Math.random()*2-1)*(1-i/n);
+  const src=c.createBufferSource(); src.buffer=buf;
+  const f=c.createBiquadFilter(); f.type='lowpass'; f.frequency.value=freq||900;
+  const g=c.createGain(); g.gain.setValueAtTime(vol||0.2,t0);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  src.connect(f); f.connect(g); g.connect(c.destination);
+  src.start(t0); src.stop(t0+dur+0.02);
+}
+/* correct — a major arpeggio that climbs higher the longer the streak runs */
+function sfxRight(streak){
+  if(!SOUND) return;
+  const base=523.25*Math.pow(2,Math.min(4,Math.floor((streak-1)/4))/12*2);
+  const notes=[1,1.26,1.5,2];                         // root, M3, P5, octave
+  notes.forEach((m,i)=>tone(base*m,i*0.055,0.26,'triangle',0.17));
+  if(streak>=3) tone(base*2.52,0.235,0.34,'sine',0.13);
+  if(streak>=7){ tone(base*3,0.30,0.4,'sine',0.11); noise(0,0.16,0.09,2600); }
+  if(streak>=12){ [0,.09,.18].forEach((t,i)=>tone(base*(3+i*0.5),0.34+t,0.3,'triangle',0.09)); }
+}
+/* wrong — a fat descending buzzer plus a thud */
+function sfxWrong(){
+  if(!SOUND) return;
+  tone(196,0,0.42,'sawtooth',0.20,72);
+  tone(146.8,0.03,0.46,'square',0.13,58);
+  noise(0,0.28,0.26,420);
+  tone(92,0.16,0.3,'sine',0.16,46);
+}
+function sfxBadge(){ if(!SOUND) return; [784,988,1175,1568].forEach((f,i)=>tone(f,i*0.075,0.3,'triangle',0.15)); }
+function sfxLevel(){ if(!SOUND) return; [392,523,659,784,1047].forEach((f,i)=>tone(f,i*0.07,0.34,'sine',0.16)); }
+function sfxFanfare(){ if(!SOUND) return;
+  [[523,0],[659,.1],[784,.2],[1047,.3],[784,.46],[1047,.56],[1319,.66]].forEach(([f,t])=>tone(f,t,0.5,'triangle',0.16));
+  noise(0.3,0.5,0.08,3200); }
+function sfxSad(){ if(!SOUND) return; [440,392,349,294].forEach((f,i)=>tone(f,i*0.16,0.4,'triangle',0.15)); }
+$('#hSnd').onclick=()=>{
+  SOUND=!SOUND;
+  try{ localStorage.setItem('quiz_sound',SOUND?'1':'0'); }catch(e){}
+  $('#hSndEm').textContent=SOUND?'🔊':'🔇';
+  $('#hSnd').classList.toggle('off',!SOUND);
+  if(SOUND) tone(880,0,0.14,'triangle',0.16);
+};
+
+/* ---------------- HUD ---------------- */
+function levelInfo(){let idx=0;for(let i=0;i<LV.length;i++)if(G.xp>=LV[i].xp)idx=i;
+  const cur=LV[idx], nxt=LV[idx+1];
+  const pct=nxt?((G.xp-cur.xp)/(nxt.xp-cur.xp))*100:100;
+  return {idx,title:cur.title,pct:Math.max(0,Math.min(100,pct))};}
+function renderHUD(){const li=levelInfo();
+  $('#hLvl').textContent=li.title; $('#hXp').textContent=G.xp+' XP'; $('#hBar').style.width=li.pct+'%';
+  $('#hStreakN').textContent=G.streak;
+  const c=$('#hStreak');c.classList.remove('t1','t2','t3');
+  if(G.streak>=12)c.classList.add('t3'); else if(G.streak>=7)c.classList.add('t2'); else if(G.streak>=3)c.classList.add('t1');
+  $('#hStreakEm').textContent=G.streak>=12?'☄️':(G.streak>=7?'💥':'🔥');
+  $('#hBadgeN').textContent=Object.keys(G.badges).length;
+  $('#hSndEm').textContent=SOUND?'🔊':'🔇';
+  $('#hSnd').classList.toggle('off',!SOUND);}
+
+let toastQ=[],toasting=false;
+function toast(em,tt,td){toastQ.push([em,tt,td]);if(!toasting)nextToast();}
+function nextToast(){if(!toastQ.length){toasting=false;return;}toasting=true;const[em,tt,td]=toastQ.shift();
+  $('#toEm').textContent=em;$('#toTt').textContent=tt;$('#toTd').textContent=td;const t=$('#toast');
+  t.classList.add('show');setTimeout(()=>{t.classList.remove('show');setTimeout(nextToast,380);},1900);}
+function unlock(id){if(G.badges[id])return;const b=BG.find(x=>x.id===id);if(!b)return;G.badges[id]=1;
+  G.xp+=50;toast(b.em,'Badge unlocked: '+b.name,'+50 XP · '+b.desc);sfxBadge();renderHUD();}
+function levelUpCheck(before){const a=levelInfo().idx;if(a>before){toast('🚀','Level up! '+LV[a].title,'You reached a new rank.');sfxLevel();}}
+function floater(x,y,txt,color){const f=el('div','floater',txt);f.style.left=x+'px';f.style.top=y+'px';f.style.color=color;document.body.appendChild(f);setTimeout(()=>f.remove(),1300);}
+function bigCall(txt,bad){if(reduced)return;const b=el('div','bigcall'+(bad?' bad':''),txt);document.body.appendChild(b);setTimeout(()=>b.remove(),1700);}
+function mega(emo,up){if(reduced)return;const m=el('div','mega '+(up?'up':'down'),emo);document.body.appendChild(m);setTimeout(()=>m.remove(),1600);}
+
+/* the shout-outs */
+const CALLS={2:'NICE! ✌️',3:'TRIPLE! 🔥',4:'HEATING UP! 🌡️',5:'ON FIRE! 🔥🔥',6:'RAMPAGE! 💥',
+  7:'UNSTOPPABLE! ⚡',8:'MONSTROUS! 👹',10:'GODLIKE! 🌌',12:'INFERNO! ☄️',15:'LEGENDARY! 👑',18:'ELASTIC GOD! 🏛️'};
+const CHEERS=['YES! 🎉','BOOM! 💥','CLEAN! ✨','SHARP! 🎯','NAILED IT! 🔨','CORRECT! ✅','TOO EASY! 😎','CHEF’S KISS 👌'];
+const TAUNTS=['NOPE! 👎','OOF. 👎','BONK! 👎','YIKES. 👎','BRUTAL. 👎','DENIED! 👎','OUCH! 👎','NOT TODAY. 👎'];
+
+function onAnswer(ok,x,y,card){
+  if(ok){
+    G.streak++; G.best=Math.max(G.best,G.streak);
+    const bonus=Math.min(30,Math.max(0,(G.streak-1)*4));    // streak bonus grows with the run
+    const gain=10+bonus;
+    const before=levelInfo().idx; G.xp+=gain; levelUpCheck(before);
+    sfxRight(G.streak);
+    crackers(x,y,G.streak);
+    greenFlash(G.streak);
+    mega(G.streak>=12?'🏆':(G.streak>=7?'💥':(G.streak>=3?'🔥':'👍')),true);
+    floater(x,y,'+'+gain+' XP','var(--lime)');
+    bigCall(CALLS[G.streak]||rnd(CHEERS));
+    if(card){card.classList.add('hitgood');setTimeout(()=>card.classList.remove('hitgood'),1400);}
+    if(!G.badges.b_first)unlock('b_first');
+    if(G.streak===5)unlock('b_streak5');
+    if(G.streak===10)unlock('b_streak10');
+    if(G.streak===15)unlock('b_streak15');
+    renderHUD();
+  } else {
+    const lost=G.streak;
+    G.streak=0;
+    sfxWrong();
+    thumbsDown(x,y,lost);
+    mega('👎',false);
+    bigCall(lost>=3?'STREAK BROKEN! 👎':rnd(TAUNTS),true);
+    floater(x,y,lost>=3?'−'+lost+' streak':'✕','var(--red)');
+    if(card){card.classList.add('hitbad');setTimeout(()=>card.classList.remove('hitbad'),1400);}
+    renderHUD();
+  }
+}
+
+/* ---------- 🎆 crackers — intensity scales with the streak ---------- */
+const CRK=['#22D3EE','#8B5CF6','#F472B6','#4ADE80','#FBBF24','#FB7185','#FFFFFF'];
+function burstAt(x,y,n,spread,size){
+  const ring=el('div','boom');ring.style.left=x+'px';ring.style.top=y+'px';
+  const rs=spread*1.6;ring.style.width=rs+'px';ring.style.height=rs+'px';
+  ring.style.borderColor=rnd(CRK);document.body.appendChild(ring);setTimeout(()=>ring.remove(),740);
+  for(let i=0;i<n;i++){
+    const ang=(i/n)*Math.PI*2+Math.random()*0.4;
+    const r=spread*(0.5+Math.random()*0.75);
+    const s=el('div','spark'),dot=el('i');s.appendChild(dot);
+    s.style.left=x+'px';s.style.top=y+'px';
+    const col=rnd(CRK),w=size*(0.6+Math.random()*0.9);
+    dot.style.background=col;dot.style.boxShadow='0 0 10px '+col+',0 0 22px '+col;
+    dot.style.width=w+'px';dot.style.height=w+'px';
+    const d=0.8+Math.random()*0.6;
+    s.style.setProperty('--tx',(Math.cos(ang)*r).toFixed(1)+'px');
+    s.style.setProperty('--ty',(Math.sin(ang)*r).toFixed(1)+'px');
+    s.style.setProperty('--d',d.toFixed(2)+'s');
+    document.body.appendChild(s);setTimeout(()=>s.remove(),(d+0.4)*1000);
+  }
+}
+function launchTo(x,y,n,spread,size){
+  const rd=0.30+Math.random()*0.18;
+  const rk=el('div','rocket');rk.style.left=x+'px';rk.style.top=innerHeight+'px';
+  const col=rnd(CRK);rk.style.background=col;rk.style.boxShadow='0 0 12px '+col;
+  rk.style.setProperty('--ry',(y-innerHeight)+'px');rk.style.setProperty('--rd',rd.toFixed(2)+'s');
+  document.body.appendChild(rk);
+  setTimeout(()=>{rk.remove();burstAt(x,y,n,spread,size);if(SOUND)noise(0,0.12,0.07,2200);},rd*1000);
+}
+function flash(){if(reduced)return;const f=el('div','flash');document.body.appendChild(f);setTimeout(()=>f.remove(),580);}
+function greenFlash(streak){
+  if(reduced)return;
+  const g=el('div','greenflash');document.body.appendChild(g);setTimeout(()=>g.remove(),620);
+  const v=el('div','vignette good');document.body.appendChild(v);setTimeout(()=>v.remove(),900);
+  document.body.classList.add('zoomit');setTimeout(()=>document.body.classList.remove('zoomit'),520);
+  if(streak>=7)flash();
+}
+/* tier 0: 2 shells · tier 1 (3+): 3 · tier 2 (7+): 5 + white flash
+   tier 3 (12+): 8 shells, wider, plus a confetti barrage                    */
+function crackers(x,y,streak){
+  if(reduced)return;
+  if(x==null||isNaN(x)){x=innerWidth/2;y=innerHeight/2;}
+  const s=streak||1;
+  const tier = s>=12?3 : s>=7?2 : s>=3?1 : 0;
+  const shells=[2,3,5,8][tier];
+  const grow=1.25+tier*0.32;
+  burstAt(x,y,Math.round(20*grow),Math.round(120*grow),7+tier);
+  const W=innerWidth,H=innerHeight;
+  for(let i=0;i<shells;i++){
+    const sx=W*(0.10+Math.random()*0.80), sy=H*(0.10+Math.random()*0.32);
+    setTimeout(()=>launchTo(sx,sy,Math.round(26*grow),Math.round(150*grow),6+tier),70+i*130);
+  }
+  if(tier>=1)confetti(24*tier);
+  if(tier>=3){
+    confetti(90);
+    setTimeout(()=>{for(let i=0;i<4;i++){const sx=W*(0.12+Math.random()*0.76),sy=H*(0.08+Math.random()*0.30);
+      setTimeout(()=>launchTo(sx,sy,36,225,9),i*120);}},720);
+  }
+}
+function confetti(count){if(reduced)return;const cols=['#22D3EE','#8B5CF6','#F472B6','#4ADE80','#FBBF24'];const n=count||100;
+  for(let i=0;i<n;i++){const c=el('div','confetti');c.style.left=Math.random()*100+'vw';c.style.background=cols[i%cols.length];c.style.transform='rotate('+(Math.random()*360)+'deg)';
+    const d=2.4+Math.random()*1.8;c.style.animation='fall '+d+'s linear '+(Math.random()*0.6)+'s forwards';document.body.appendChild(c);setTimeout(()=>c.remove(),(d+1)*1000);}}
+const cst=document.createElement('style');cst.textContent='@keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:.2}}';document.head.appendChild(cst);
+
+/* ---------- 👎 thumbs down — a full shower, always heavy ---------- */
+function thumbsDown(x,y,lostStreak){
+  if(reduced)return;
+  if(x==null||isNaN(x)){x=innerWidth/2;y=innerHeight/2;}
+  const rf=el('div','redflash');document.body.appendChild(rf);setTimeout(()=>rf.remove(),720);
+  const vg=el('div','vignette');document.body.appendChild(vg);setTimeout(()=>vg.remove(),980);
+  document.body.classList.add('shakeit');setTimeout(()=>document.body.classList.remove('shakeit'),500);
+  /* the bigger the streak you just torched, the heavier the shower */
+  const extra=Math.min(26,(lostStreak||0)*3);
+  const popN=22+extra, rainN=20+extra;
+  for(let i=0;i<popN;i++){                       // burst outward from the tapped option
+    const t=el('div','tdown pop','👎');
+    const ang=(i/popN)*Math.PI*2+Math.random()*0.5;
+    const r=110+Math.random()*230;
+    const d=1.0+Math.random()*0.8;
+    t.style.left=x+'px';t.style.top=y+'px';
+    t.style.fontSize=(24+Math.random()*38).toFixed(0)+'px';
+    t.style.setProperty('--tx',(Math.cos(ang)*r).toFixed(1)+'px');
+    t.style.setProperty('--ty',(Math.sin(ang)*r+150).toFixed(1)+'px');
+    t.style.setProperty('--rot',((Math.random()-0.5)*720).toFixed(0)+'deg');
+    t.style.setProperty('--d',d.toFixed(2)+'s');
+    document.body.appendChild(t);setTimeout(()=>t.remove(),(d+0.3)*1000);
+  }
+  for(let i=0;i<rainN;i++){                      // and a shower down the whole screen
+    const t=el('div','tdown rain','👎');
+    const d=1.5+Math.random()*1.6;
+    t.style.left=(Math.random()*96)+'vw';t.style.top='-50px';
+    t.style.fontSize=(22+Math.random()*40).toFixed(0)+'px';
+    t.style.setProperty('--ty',(innerHeight+150)+'px');
+    t.style.setProperty('--rot',((Math.random()-0.5)*900).toFixed(0)+'deg');
+    t.style.setProperty('--d',d.toFixed(2)+'s');
+    t.style.animationDelay=(Math.random()*0.6).toFixed(2)+'s';
+    document.body.appendChild(t);setTimeout(()=>t.remove(),(d+1.2)*1000);
+  }
+}
+
+
+/* =========================================================================
+   Supply Chain Management — Sessions 1A, 1B, 2A, 2B + opening caselets
+   Source decks: /Users/patel/Desktop/Altera/SCM/Decks
+   (SupplyChainModelsSession3.pdf is a duplicate of Session 2A — not
+   double-counted.)
+   ========================================================================= */
+
+const CONFIG={
+  quizEyebrow:'Supply Chain for Managers · practice',
+  quizTitle:'The core paper',
+  quizIntro:'34 questions across Sessions 1A–2B. Click a section in the sidebar to drill just that block.',
+  mapTitle:'The Supply Chain Map',
+  examDayPlan:[
+   '<b>Start every scenario with the four outcomes.</b> Availability, service, inventory, total cost — say what each option does to all four.',
+   '<b>Recorded ≠ saleable ≠ available.</b> Subtract holds, damage and reservations before you promise anything.',
+   '<b>OTIF needs both halves.</b> On time and in full, against the <i>agreed</i> promise.',
+   '<b>Locate the decoupling point by asking one question:</b> what is complete before the order arrives?',
+   '<b>Judge channels on contribution, not gross sales.</b> Fees, freight, returns and cash delay come off first.',
+   '<b>Close with the deck’s sentence:</b> we protect ___, we compromise ___, we manage the risk by ___.']
+};
+
+const TOPICS=[
+ {id:'why',  name:'Why Managers Need SCM',       kick:'opening caselets · Samosa Crisis'},
+ {id:'def',  name:'Definition & Vocabulary',     kick:'demand → fulfilment · six terms'},
+ {id:'net',  name:'Network & Three Flows',       kick:'nodes, links, tiers · physical / info / cash'},
+ {id:'lead', name:'Lead Time & System Thinking', kick:'dependency · availability · local optimisation', hot:true},
+ {id:'perf', name:'Performance Trade-offs',      kick:'four outcomes · OTIF · Session 1B caselets', hot:true},
+ {id:'prod', name:'Production Models & Push/Pull',kick:'MTS · ATO · MTO · ETO', hot:true},
+ {id:'cdp',  name:'Decoupling & Postponement',   kick:'the boundary · four postponements'},
+ {id:'chan', name:'Channel & Distribution Models',kick:'D2C · retail · marketplace · FMCG · q-comm', hot:true},
+];
+
+/* shared scenes */
+const SAMOSA={cl:'Story · Supply Chain Wale Dulhania Le Jayenge',h:'The Great Indian Samosa Crisis',
+ body:'Raj promises samosas and chai for “only six” people watching the match. Six becomes 24 guests, then 27. The samosa estimate moves 48 → 60 → 70 → 80. Gupta Sweets has potatoes, oil and a cook but <b>no maida</b>; the cook makes <b>60 samosas an hour</b>. Of the 80 “available”, <b>20 were made in the morning</b>. The rider is sent to <b>Sharma Niwas</b> instead of Malhotra Niwas. Planned arrival 6:45 p.m.; actual 7:20 p.m., with the last 20 coming after the match.'};
+
+const QCOMM={cl:'Caselet · Quick commerce',h:'Heavy rain and a 15-minute promise',
+ body:'Between 7 and 9 p.m. rain lifts orders from <b>900 to 1,400</b>. Dark-store availability is <b>94%</b>. Rider capacity is about <b>70% of what the surge needs</b>. The app still promises <b>15 minutes</b> across the normal radius.'};
+
+const QUIZ=[
+/* ---------------- why ---------------- */
+ {t:'why',tag:'concept',diff:'easy',scene:SAMOSA,
+  q:'<b>Part 1.</b> Gupta-ji has potatoes, oil and a cook ready, but the maida has not arrived. Which supply-chain pillar failed first?',
+  opts:['Manufacturing and sourcing — a required input is missing',
+        'Distribution and logistics — the rider has not yet been booked',
+        'Warehousing and inventory — the finished samosas are stale',
+        'Demand planning — the guest count is still being revised'],
+  why:'<b>Sourcing is the first pillar: can you get every input for the required quantity, quality and time?</b> Potatoes, oil and labour are useless without maida — one missing input stops production entirely.<div class="work">Pillar 1  Manufacturing & sourcing   maida missing\nPillar 2  Demand & supply planning  6 → 24 → 27 guests\nPillar 3  Warehousing & inventory   20 of 80 stale\nPillar 4  Distribution & logistics  wrong address, split delivery</div>All four pillars fail in the story, which is why the distractors look plausible — but the question asks which input failure stops <i>making</i>. The deck’s line: “Making samosas is easy. Making the promise work is supply chain.”'},
+ {t:'why',tag:'calc',diff:'medium',trap:true,scene:SAMOSA,
+  q:'<b>Part 2.</b> Raj orders 80 samosas at 5:45 p.m. for a 6:45 p.m. arrival. The cook makes 60 an hour. What does the deck call this mismatch?',
+  opts:['Order is not capacity — 80 ordered, but only 60 can be made in the hour',
+        'Inventory is not availability — 80 exist, but only 60 are fresh and ready',
+        'Plan versus reality — the delivery is planned for 6:45 but lands at 7:20',
+        'Poor demand visibility — the estimate kept moving from 48 up to 80'],
+  why:'<b>An order is a request; capacity is what the process can actually produce per unit time.</b><div class="work">Ordered   80 samosas in 1 hour\nCapacity  60 samosas per hour\nShortfall 20 → arrives late</div>The trap is that the story uses <i>two different</i> 80-vs-60 gaps. “Order 80 ≠ capacity 60” is about production rate. “Inventory 80 ≠ customer-ready 60” is about the condition of stock that already exists. Read which 60 the stem is talking about before answering.'},
+ {t:'why',tag:'apply',diff:'medium',
+  q:'Rhea, a GlowUp category manager, promises a marketplace 10,000 units. Stock shows 5,000; only 3,200 are saleable. The product sells out by 1 p.m. and cancellations hit 23%. She says “the campaign worked too well”. What was the <b>earliest</b> managerial failure?',
+  opts:['She committed demand before checking saleable stock and replenishment time',
+        'The marketplace app kept accepting orders for three full hours after the sell-out',
+        'The influencer posted earlier than the agreed promotion launch window',
+        'The warehouse failed to release the 1,200 units blocked by quality'],
+  why:'<b>The failure began at the commitment, not at the stock-out.</b> Recorded stock was 5,000, saleable 3,200, and packaging needed 18 days to replenish — so the 10,000 promise was infeasible the moment it was made.<div class="work">Recorded    5,000\n− quality   1,200\n− reserved    600\n= saleable  3,200   vs promise 10,000</div>The app accepting orders until 4 p.m. made it worse, but it is a downstream symptom. “Earliest” questions want the decision that created the gap — here, a commercial promise made without a feasibility check.'},
+ {t:'why',tag:'concept',diff:'easy',
+  q:'Arjun sends 300 jackets to each of 40 stores. Mumbai and Pune sell out of M and L; Jaipur and Bhopal sit on slow colours. He says “at least national inventory is healthy.” Why is that defence wrong?',
+  opts:['Customers buy a specific SKU in a reachable location, not national stock',
+        'National inventory is too low to cover all forty stores for the full monsoon season',
+        'Equal allocation is unfair to the larger flagship stores in each city',
+        'The jackets were priced too low, so they sold faster than planned'],
+  why:'<b>Inventory is what the business owns; availability is what the customer can buy where they are.</b> Equal allocation ignored local demand and size mix, so the brand had stock-outs and excess stock <i>at the same time</i>.<div class="work">Early-warning measure  store × SKU availability + local sell-through\nNot                    total company stock</div>The “too low” option is the tempting one — but the case says national stock was plentiful. The fix is reallocation by local run rate, not buying more.'},
+ {t:'def',tag:'concept',diff:'easy',
+  q:'Which is the deck’s working shorthand for a supply chain?',
+  opts:['It converts customer demand into customer fulfilment',
+        'It moves products from the factory to the warehouse',
+        'It buys materials at the lowest available unit price',
+        'It manages every activity that creates firm value'],
+  why:'<b>Supply chain = the connected network that converts demand into fulfilment.</b> The definition is deliberately end-to-end: organisations, people, facilities, information, money and activities.<br><br>“Factory to warehouse” is logistics. “Lowest price” is procurement. “Every activity that creates value” is the <i>value</i> chain, which also includes marketing and service. Each distractor is a real neighbouring term — that is how this is examined.'},
+ {t:'def',tag:'apply',diff:'medium',
+  q:'A shampoo brand’s team is “allocating stock to distributors and marketplaces”. Which term best classifies this decision?',
+  opts:['Distribution — making the product available through channels',
+        'Logistics — moving and storing the cartons between the company’s sites',
+        'Procurement — deciding what to buy and on what terms',
+        'Supply chain — coordinating every function to the date'],
+  why:'<b>Distribution asks: how do we make the product available through channels?</b> Allocating stock to distributors and marketplaces is exactly that.<div class="work">Negotiating packaging prices  → Procurement\nConverting ingredients        → Operations\nMoving cartons factory→WH     → Logistics\nAllocating to channels        → Distribution\nCoordinating all four to date → Supply chain</div>The trap is logistics vs distribution. Logistics is <i>movement and storage</i>; distribution is <i>channel availability</i>. If the stem names a channel, it is distribution.'},
+ {t:'def',tag:'concept',diff:'medium',
+  q:'Which statement correctly relates logistics to supply-chain management?',
+  opts:['Logistics is one part; SCM coordinates the complete system',
+        'They are synonyms used by different industries for one function',
+        'SCM is one part of logistics, which covers all value activities',
+        'Logistics covers planning; SCM covers only physical transport'],
+  why:'<b>Logistics answers “how do we move and store the product?” — one part of the system.</b> SCM coordinates procurement, operations, logistics and distribution so that all participants fulfil demand together.<br><br>The reversed option (SCM inside logistics) is the classic inversion. The “all value activities” wording belongs to the <b>value chain</b>, which is wider still: it adds product design, marketing, sales and service.'},
+ {t:'def',tag:'apply',diff:'medium',
+  q:'For a split AC sold in Noida, which activity belongs to the <b>value chain</b> but sits outside the supply chain as the deck defines it?',
+  opts:['Pricing and marketing the AC before the summer rush',
+        'Buying compressors, copper tubes and electronic parts',
+        'Moving units from the plant to the regional warehouse',
+        'Coordinating stock, order confirmation and installation'],
+  why:'<b>The value chain covers every activity through which the firm creates value — including design, pricing, marketing and after-sales.</b> The supply chain is the fulfilment system inside it.<div class="work">Procurement   compressors, copper tubes\nOperations    assemble and test\nLogistics     plant → warehouse → home\nSupply chain  stock, confirmation, delivery, installation\nValue chain   + design, pricing, marketing, service</div>Every distractor is a genuine supply-chain activity from the deck’s AC example. Pricing and marketing are the only items that live only in the wider value chain.'},
+ {t:'net',tag:'concept',diff:'easy',
+  q:'In the deck’s network vocabulary, a purchase order, a road route and a UPI payment are all examples of what?',
+  opts:['Links — the connections products, information and money travel through',
+        'Nodes — the places where products are made, stored or sold',
+        'Tiers — the levels of supplier distance from the focal firm',
+        'Flows — the three categories of physical, information and cash movement that travel'],
+  why:'<b>Nodes are places; links are connections.</b> The deck lists road, rail, sea or air, purchase orders, forecast data, payment and return instructions all as links.<div class="work">Nodes  supplier site, factory, warehouse, store, dark store, customer, return centre\nLinks  transport, PO, forecast & stock data, payment, return instruction</div>“Flows” is the closest distractor — but flows describe <i>what</i> moves; links are the channels it moves through. “A node without reliable links cannot serve the network.”'},
+ {t:'net',tag:'apply',diff:'medium',trap:true,
+  q:'A serum brand buys bottles from a bottle maker, who buys resin from a resin company. From the <b>bottle maker’s</b> point of view, where does the serum brand sit?',
+  opts:['Downstream — it is the bottle maker’s customer',
+        'Upstream — it is closer to the raw materials',
+        'Tier 1 — it supplies the bottle maker directly',
+        'Tier 2 — it is two steps away from the resin'],
+  why:'<b>Direction depends on where you stand.</b> For the serum brand, the bottle maker is upstream (Tier 1). For the bottle maker, the serum brand is downstream — its customer — and the resin company is upstream.<div class="work">Feedstock → Resin → Bottle → Serum brand → Marketplace → Customer\n  T3         T2      T1      focal</div>The trap is fixing the focal firm as the serum brand. Tiers count <i>suppliers</i> upstream of a focal firm, so a customer cannot be any tier for the firm it buys from.'},
+ {t:'net',tag:'apply',diff:'medium',
+  q:'A brand has three Tier 1 suppliers and believes it has diversified risk. All three source the same component from one Tier 2 plant. What is the risk?',
+  opts:['A hidden single point of failure upstream',
+        'Excess inventory from over-ordering',
+        'Weak bargaining power with Tier 1s',
+        'Duplicated freight across three suppliers'],
+  why:'<b>Three suppliers on paper can still mean one point of failure.</b> Diversification at Tier 1 does nothing if every Tier 1 depends on one Tier 2 source — a fire or shortage there stops all three.<br><br>This is why managers map beyond Tier 1. The completed concept check reads: several Tier 1 suppliers that depend on one Tier 2 source create a hidden single point of <b>failure or dependency</b>.'},
+ {t:'net',tag:'apply',diff:'medium',
+  q:'A student receives the wrong shoe size and requests an exchange. Which set of events does the deck say this one transaction creates?',
+  opts:['Forward and reverse product movement, an info update, and two cash events',
+        'One forward physical flow only, since the exchange is a fresh order',
+        'A reverse cash flow only, since the shoes are not physically resold',
+        'A single information update only, since the stock levels end exactly where they began'],
+  why:'<b>One transaction can generate forward, reverse, information and cash movements.</b><div class="work">Info      order: size, address, payment status, date\nPhysical  FC → courier → student\nCash      payment via platform → seller settlement\nReverse   wrong size back through pickup and returns\nInfo      return recorded, replacement released\nCash      second event: refund or adjustment</div>The supply chain continues after delivery. Treating the exchange as “just a new order” hides the reverse-logistics cost and the stock blocked in transit.'},
+ {t:'lead',tag:'calc',diff:'hard',trap:true,
+  given:['Ingredients 15 d','Bottles 10 d','Scheduling 5 d','Make + QC 4 d','Factory→WH 3 d','Delivery 2 d'],
+  q:'Ingredient and bottle procurement can run in parallel; every other step is sequential. What is the end-to-end lead time?',
+  opts:['29 days — the slower procurement (15) plus 5 + 4 + 3 + 2',
+        '39 days — every step added together in sequence',
+        '24 days — the faster procurement (10) plus 5 + 4 + 3 + 2',
+        '15 days — the single longest activity in the chain'],
+  why:'<b>End-to-end lead time depends on sequence, overlap, waiting and the slowest critical activity.</b> Parallel steps contribute only the longest of them.<div class="work">Parallel   max(15, 10) = 15\nSequential 5 + 4 + 3 + 2 = 14\nTotal      15 + 14 = 29 days\n\nIf all sequential: 15+10+5+4+3+2 = 39</div>39 is the trap: adding every bar on the slide. 24 uses the <i>faster</i> parallel path, but production cannot start until both inputs arrive. The deck gives the durations and the rule; the overlap assumption is the one you must state in the exam.'},
+ {t:'lead',tag:'apply',diff:'medium',
+  q:'A parent needs fever medicine at 10 p.m. The company holds stock in a central warehouse across the city, but the nearby dark store has none. Moving it takes until morning. What does this illustrate?',
+  opts:['Inventory exists, but availability for tonight’s promise does not',
+        'A stock-out — the company holds no stock of the medicine anywhere',
+        'A pricing failure — the dark store priced the medicine too high',
+        'Local optimisation — the warehouse is minimising its holding cost'],
+  why:'<b>Availability = correct product, quantity, saleable condition, correct location, within the promised time.</b> Distant stock fails the location and time tests.<div class="work">INVENTORY (owned/recorded)      AVAILABILITY (customer can buy)\nmay be damaged                  correct product & quantity\nblocked for quality             saleable condition\nreserved for another order      correct location\nat the wrong location           within promised time</div>Calling this a “stock-out” is the trap — the company has the medicine. The deck: inventory in Mumbai does not create tonight’s availability in Guwahati.'},
+ {t:'lead',tag:'apply',diff:'medium',
+  q:'Procurement orders six months of bottles to win a lower unit price and meets its savings target. Which consequence does the deck list on the <b>system</b> side?',
+  opts:['Cash stays blocked, storage rises and packaging may become obsolete',
+        'Purchase price per bottle falls and the supplier relationship improves',
+        'Production runs become shorter and line changeovers rise sharply',
+        'Customer lead time falls because every bottle is already in hand'],
+  why:'<b>Local optimisation improves one function’s metric while damaging the system.</b><div class="work">LOCAL RESULT          SYSTEM CONSEQUENCES\nprice per bottle ↓    cash blocked\nsavings target met    storage & handling ↑\n                      obsolescence risk\n                      damage exposure ↑\n                      forecast risk ↑</div>The first distractor is the <i>local</i> result, not the system one. Judge the decision through total cost and customer impact, not the metric of the department taking it.'},
+ {t:'lead',tag:'concept',diff:'easy',
+  q:'Which four outcomes does Session 1A say reveal system performance?',
+  opts:['Availability, service, inventory and total cost',
+        'Revenue, margin, market share and customer NPS',
+        'Speed, quality, flexibility and dependability',
+        'Procurement, operations, logistics and distribution'],
+  why:'<b>Availability · Service · Inventory · Cost</b> — the frame that Session 1B turns into measures and trade-offs.<div class="work">Availability  can the customer buy it when and where required?\nService       was quantity, condition and time met?\nInventory     how much stock has the business funded?\nCost          what total cost did fulfilment incur?</div>“Speed, quality, flexibility, dependability” is the classic operations-strategy list — real, but not this course’s frame. The bottom distractor is the vocabulary list from Part III.'},
+
+/* ---------------- perf ---------------- */
+ {t:'perf',tag:'concept',diff:'easy',trap:true,
+  q:'A key account receives 850 of 1,000 agreed units on the agreed Friday. Does the delivery pass OTIF?',
+  opts:['No — it is on time but not in full',
+        'Yes — it is on time, which is the primary test',
+        'Yes — 85% fill is above the usual threshold',
+        'Partly — OTIF is scored as 85% for this order'],
+  why:'<b>OTIF requires both conditions against the agreed promise: on time AND in full.</b><div class="work">On time  ✓  Friday\nIn full  ✗  850 / 1,000\nOTIF     ✗</div>The trap is treating OTIF as a percentage. Fill rate can be 85%; OTIF for this order is a fail. A revised split only becomes the new promise when the <b>customer accepts it before the due time</b> — change the promise before it fails, not after.'},
+ {t:'perf',tag:'calc',diff:'medium',scene:QCOMM,
+  q:'<b>Part 1.</b> By roughly how much has demand grown, and what created the service risk first?',
+  opts:['About 56% — a promise that ignored the available rider capacity',
+        'About 36% — the dark store’s product availability fell below target',
+        'About 56% — the dark store ran out of fast-moving essential items',
+        'About 64% — the riders took longer routes because of the rain'],
+  why:'<b>The service failure began before any rider was late — the app kept accepting an unrealistic promise.</b><div class="work">Growth  (1,400 − 900) ÷ 900 = 55.6%\nRiders  ~70% of surge requirement\nStock   94% availability — not the binding constraint</div>36% is (1,400−900)÷1,400 — the wrong base. The stock-out distractor gets the growth right but blames inventory, when 94% availability shows stock was fine. Capacity, not stock, was the bottleneck.'},
+ {t:'perf',tag:'apply',diff:'medium',scene:QCOMM,
+  q:'<b>Part 2.</b> Which option manages the four outcomes most deliberately, and which buffers does it use?',
+  opts:['Segment the promise — protect essentials, using time and capacity as buffers',
+        'Keep 15 minutes everywhere — buying expensive surge rider capacity as the main buffer',
+        'Extend every order to 45 minutes — using time as the only buffer',
+        'Add stock to the dark store — using inventory as the main buffer'],
+  why:'<b>When more inventory cannot solve a delivery bottleneck, time and capacity become the buffers.</b><div class="work">A  Keep 15 min    availability broad · service high failure · cost very high\nB  45 min for all availability broad · service reliable · cost moderate\nC  Segment        essentials protected · achievable by segment · cost controlled</div>C protects milk, medicine, infant care and dinner basics within 2 km, shows honest longer windows elsewhere, restricts radius and pauses slow items. B is reliable but blunt. Inventory cannot move itself — extra stock does nothing for a rider shortage.'},
+ {t:'perf',tag:'calc',diff:'medium',
+  given:['Normal 8,000','Promo forecast 14,000','Saleable 9,000','Can still make 2,000','Sleeve lead time 10 d','Launch in 7 d'],
+  q:'Marketing wants a Diwali gift-box promotion. How many boxes are feasible before launch, and why can’t the rest be made?',
+  opts:['11,000 — the other 3,000 lack sleeves, which need 10 days against 7',
+        '14,000 — overtime and premium freight can close the whole remaining gap',
+        '9,000 — only stock that is already saleable can be promised today',
+        '8,000 — the promotion should be capped at normal weekly demand'],
+  why:'<b>Sell the quantity the system can support.</b><div class="work">Saleable now        9,000\n+ makeable in time  2,000\n= feasible         11,000\nShortfall vs 14,000 3,000 — sleeve lead time 10 d > 7 d</div>9,000 forgets the 2,000 that materials already support. 14,000 assumes money can beat a lead time — but emergency overtime cannot make sleeves arrive faster than they physically can. Option B in the deck caps at 11,000, allocates by city and channel, and moves the rest to pre-orders.'},
+ {t:'perf',tag:'calc',diff:'medium',trap:true,
+  given:['Import ₹18 quote · ₹27 landed','Local ₹23 quote · ₹25 landed','MOQ 50,000','Demand 12,000/month'],
+  q:'A D2C brand compares an imported serum bottle with a local one. Which number should be compared first, and what does the import MOQ represent?',
+  opts:['Landed and total system cost; the MOQ is about 4.2 months of demand',
+        'The supplier quote; the import saves ₹5 a bottle against local supply',
+        'Landed and total system cost; the MOQ is about 1.4 months of demand',
+        'The supplier quote; the MOQ is irrelevant once the price is agreed'],
+  why:'<b>The quote excludes freight, duty, quality loss, inventory, payment timing and recovery cost.</b><div class="work">Landed      import ₹27 vs local ₹25  → local already cheaper\nMOQ cover   50,000 ÷ 12,000 = 4.17 months\nPlus        45-day lead time, advance payment, 5% vs 1% rejection</div>The ₹5 “saving” is the quote trap — on landed cost the import is <i>₹2 dearer</i> before quality and cash are counted. 1.4 months inverts the division. The deck’s recommendation is a dual source: import for stable base demand, local for peaks and recovery.'},
+ {t:'prod',tag:'apply',diff:'medium',
+  q:'A laptop buyer chooses memory and storage online; the brand stocks standard modules and builds the configuration after the order. Which model is this?',
+  opts:['Assemble-to-order',
+        'Make-to-order',
+        'Make-to-stock',
+        'Engineer-to-order'],
+  why:'<b>ATO: common modules exist before the order; final assembly or configuration starts after it.</b><div class="work">Model  Exists before order          Starts after order        Wait\nMTS    finished goods               pick & deliver            minutes–days\nATO    modules / components         final assembly            days\nMTO    materials & capability       manufacturing             days–weeks\nETO    knowledge, suppliers, capacity design + engineering + build  weeks–months</div>MTO is the near miss: in MTO the product itself is manufactured after the order. If the stem says “standard modules”, it is ATO. ATO’s risk: one missing component blocks several final products.'},
+ {t:'prod',tag:'apply',diff:'medium',trap:true,
+  q:'An L-shaped sofa sized to one living room, with chosen fabric and firmness, is built after the order. A cold-storage system for a new dairy plant is designed after the contract. Classify them.',
+  opts:['Sofa is make-to-order; cold storage is engineer-to-order',
+        'Both are engineer-to-order, as each is unique to one customer',
+        'Sofa is assemble-to-order; cold storage is make-to-order',
+        'Both are make-to-order, as each is built only after confirmation'],
+  why:'<b>The MTO/ETO line is whether design work starts after the order.</b> The sofa uses an existing design with customer-specific dimensions and finish — manufacture after order (MTO). The cold-storage system needs engineering from the site and process requirement — design after contract (ETO).<br><br>The trap is “unique to one customer = ETO”. Customisation alone is MTO. ETO carries <b>scope and project risk</b>; MTO carries <b>lead-time and capacity risk</b>.'},
+ {t:'prod',tag:'concept',diff:'medium',
+  q:'Match the model to the risk it carries: <b>assemble-to-order</b>.',
+  opts:['Component-balancing risk — the wrong module mix blocks assembly',
+        'Forecast risk — unsold finished goods or stock-out at the shelf',
+        'Lead-time and capacity risk — the customer waits during production',
+        'Scope and project risk — design changes affect cost and delivery'],
+  why:'<b>A model does not remove risk — it decides where the business carries it.</b><div class="work">MTS  forecast risk           unsold goods or stock-out\nATO  component-balancing     wrong module mix blocks assembly\nMTO  lead-time & capacity    customer waits during production\nETO  scope & project         design changes hit cost and date</div>All four options are real — each belongs to a different model. Memorise the column; it turns up as matching and as “which risk does the manager accept?” in written answers.'},
+ {t:'prod',tag:'concept',diff:'easy',trap:true,
+  q:'Which statement about push and pull is correct?',
+  opts:['Push depends on prediction; pull depends on response speed',
+        'Push depends on response speed; pull depends on prediction',
+        'Push is triggered by an order; pull is triggered by a forecast',
+        'Push fits uncertain mix; pull fits long replenishment lead times'],
+  why:'<b>Push: a forecast, plan or target releases work before a specific order. Pull: an actual order, sale or consumption signal releases it.</b><div class="work">        Push                       Pull\nSignal  forecast / plan            actual order / consumption\nRisk    excess stock, obsolescence  delay, lost demand, overload\nFits    repeat demand, long LT     uncertain mix, willing to wait</div>Three distractors are inversions of the same table — exactly how this is examined. Most real chains combine both: push upstream, pull downstream.'},
+ {t:'cdp',tag:'concept',diff:'easy',
+  q:'What is the customer-order decoupling point?',
+  opts:['Where forecast-driven work becomes order-driven work',
+        'Where the product leaves the factory for the warehouse',
+        'Where the customer pays and ownership transfers',
+        'Where the supplier’s responsibility for quality ends'],
+  why:'<b>Before the boundary, work follows expected demand; after it, work belongs to a specific customer order.</b> The boundary also identifies the main form of inventory waiting for demand.<br><br>The physical “factory gate” is a tempting distractor because MTS’s boundary often sits after the finished product — but the definition is about the <i>trigger</i>, not a location. The test question: <b>what is complete before the order arrives?</b>'},
+ {t:'cdp',tag:'apply',diff:'medium',trap:true,
+  q:'A firm moves its decoupling point <b>upstream</b> (e.g. from MTS to MTO). What usually happens?',
+  opts:['Finished-goods risk falls, and the customer waits longer',
+        'Finished-goods risk rises, and the customer waits less',
+        'Finished-goods risk falls, and the customer also waits less',
+        'Nothing changes for the customer, only for the factory'],
+  why:'<b>Moving the boundary upstream reduces finished-goods exposure but asks the customer to wait longer.</b><div class="work">MTS  boundary after finished product  fast     finished-goods exposure\nATO  before final assembly            moderate component inventory\nMTO  before production                longer   material inventory\nETO  before design                    longest  capability & project capacity</div>“Upstream” means toward raw materials, so less is pre-committed. The trap is the free lunch — option three. You trade inventory risk for waiting time; nothing removes both.'},
+ {t:'cdp',tag:'apply',diff:'medium',
+  q:'A paint company stocks base paint at dealers and mixes the final shade on a tinting machine after the customer chooses. What type of postponement is this?',
+  opts:['Form postponement',
+        'Packaging postponement',
+        'Assembly postponement',
+        'Fulfilment postponement'],
+  why:'<b>Form postponement delays colour, flavour, cut or final processing until the variant is known.</b><div class="work">Paint          base paint     → shade mixed after selection    Form\nLaptop         modules        → configured after order          Assembly\nGift pack      products       → festival/marketplace sleeve     Packaging\nFashion stock  central pool   → released to region/channel      Fulfilment</div>The decoupling point sits at the dealer, near the customer — many shades without holding every shade as finished stock. Learn the four examples as a set; they map one-to-one.'},
+ {t:'cdp',tag:'concept',diff:'medium',
+  q:'Which operating demand does postponement create in return for lower finished-goods inventory?',
+  opts:['Reliable availability of the common components it depends on',
+        'Longer forecast horizons for every one of the final product variants',
+        'More finished-goods stock held close to the customer',
+        'Greater variety in the common inputs held upstream'],
+  why:'<b>Postponement works only when the delayed activity can respond quickly and reliably.</b><div class="work">Benefit                         Operating demand\nLower finished-goods inventory  reliable common components\nMore variety, fewer inputs      modular design, product architecture\nLower obsolescence              fast final processing\nBetter allocation               accurate, timely information\nShorter forecast horizon        capacity near the order point</div>Option two inverts a benefit: postponement <i>shortens</i> the forecast horizon for variants. Option four inverts another: the point is <i>fewer</i> common inputs creating more variety.'},
+ {t:'chan',tag:'calc',diff:'medium',
+  given:['Price ₹1,000','Product & pack ₹320','Pay, pick, pack ₹70','Shipping ₹90','Acquisition ₹250','Returns & support ₹70'],
+  q:'What is the contribution per D2C order, and which single cost is largest after product cost?',
+  opts:['₹200 — customer acquisition at ₹250',
+        '₹680 — shipping and delivery at ₹90',
+        '₹450 — customer acquisition at ₹250',
+        '₹200 — product and packaging at ₹320'],
+  why:'<b>D2C economics extend well beyond product margin.</b><div class="work">Selling price           1,000\n− product & packaging   −320   → gross ₹680\n− payment, pick, pack    −70\n− shipping               −90\n− customer acquisition  −250\n− returns & support      −70\n= contribution          ₹200 (20%)</div>₹680 is the gross-margin trap. ₹450 forgets acquisition. The last option gets ₹200 right but answers the wrong half — the question asked for the largest cost <i>after</i> product. D2C works when lifetime value justifies a ₹250 acquisition cost.'},
+ {t:'chan',tag:'apply',diff:'medium',
+  q:'In FMCG general trade, a biscuit brand’s distributor has stock, yet the shopper finds an empty shelf. What does the deck conclude?',
+  opts:['Distributor stock does not guarantee consumer shelf availability',
+        'The distributor should hold less stock to free up working capital',
+        'The brand must own all retailer stock to control its availability',
+        'Shelf gaps show that total national production was too low'],
+  why:'<b>Distribution width creates reach; outlet execution converts reach into consumer availability.</b><div class="work">Factory     produce, consolidate        brand stock\nDistributor finance stock, serve outlets distributor stock\nSalesperson capture orders, execution   no ownership\nRetailer    shelf, display, reorder     retailer stock</div>A failure at either node looks like a brand availability problem to the shopper. Owning all stock (option three) would move cash exposure to the brand without fixing the shopkeeper’s reorder timing — the party that owns stock may not control final availability.'},
+ {t:'chan',tag:'apply',diff:'medium',
+  q:'According to the deck, where does a quick-commerce speed promise begin?',
+  opts:['With inventory placement in a nearby dark store',
+        'With the number of riders on shift at peak hours',
+        'With the app’s real-time order-tracking interface',
+        'With supplier lead times to the central warehouse'],
+  why:'<b>“Speed begins with inventory placement, not with the rider.”</b> A 10-minute promise can fail through assortment, inventory accuracy, picking or rider capacity — but if the SKU is not already local, no rider can save it.<div class="work">Supplier/FC → dark store → app order → picker → rider</div>The salt-in-the-rain example: the need is immediate, so the packet must already sit nearby, and the app must show accurate local availability <i>before</i> accepting the order. Riders matter — the deck lists them — but they are the last link, not the first.'},
+ {t:'chan',tag:'concept',diff:'medium',trap:true,
+  q:'Pooled central inventory versus duplicated local inventory — which pairing is correct?',
+  opts:['Pooled: lower safety stock, slower response. Duplicated: faster, more capital',
+        'Pooled: faster response, more capital. Duplicated: lower stock, slower',
+        'Pooled: narrower range, lower cost. Duplicated: wider range, higher cost',
+        'Pooled: higher safety stock, wider range. Duplicated: lower working capital tied up'],
+  why:'<b>Inventory placement decides whether the system protects cash through pooling or speed through proximity.</b><div class="work">Central    pooling, broad range     longer distance      uncertain / long-tail\nRegional   faster regional          duplicated stock     predictable regional\nStore      immediate possession     space cost, imbalance catchment\nDark store very short delivery      narrow range, intensive replenishment</div>Option two swaps the halves. Pooling gives <i>wider</i> assortment, not narrower. Moving stock closer improves response but increases duplication, space cost and replenishment complexity.'},
+ {t:'chan',tag:'apply',diff:'medium',
+  q:'Which channel’s main exposure is “fees, returns and limited control”?',
+  opts:['Marketplace',
+        'D2C',
+        'Retail',
+        'Quick commerce'],
+  why:'<b>Each channel has a clear strength and a clear exposure.</b><div class="work">D2C          data & relationship control  acquisition & fulfilment cost\nRetail       trust, trial, convenience    store stock, fixed cost\nMarketplace  reach, demand aggregation    fees, returns, limited control\nFMCG dist.   geographic coverage          multi-node visibility\nQ-commerce   proximity, convenience       local stock, density, capacity</div>D2C is the near miss on returns, but D2C gives the brand <i>more</i> control, not less. The best channel mix gives each model a clear customer and business purpose.'},
+];
+/* ---- CMAP · the cheat-sheet ------------------------------------------- */
+const CMAP=[
+ {h:'★ Every number you might be asked to compute',
+  note:'If a stem hands you figures, it wants one of these.',
+  rows:[
+   ['Saleable stock','<b>Recorded − quality hold − damaged − reserved</b>','GlowUp 5,000 − 1,200 − 600 = <b>3,200</b>'],
+   ['Feasible promotion','<b>Saleable + makeable before launch</b>','Diwali 9,000 + 2,000 = <b>11,000</b>'],
+   ['OTIF','<b>On time AND in full</b>, against the agreed promise','850 / 1,000 on Friday = <b>fail</b>'],
+   ['MOQ cover','<b>MOQ ÷ monthly demand</b>','50,000 ÷ 12,000 = <b>4.2 months</b>'],
+   ['Expedite test','<b>Contribution − expedite cost</b> per unit','₹180 − ₹40 = <b>₹140</b>'],
+   ['Lead time','<b>Max of parallel steps + sum of sequential</b>','15 + 5 + 4 + 3 + 2 = <b>29 d</b> (39 if all serial)'],
+   ['D2C contribution','<b>Price − product − pick/pay − ship − CAC − returns</b>','1,000 − 320 − 70 − 90 − 250 − 70 = <b>₹200</b>']]},
+ {h:'Session 1A · Foundations',
+  note:'Definition, vocabulary, network, flows.',
+  rows:[
+   ['Supply chain','converts <b>customer demand into customer fulfilment</b>','network, not isolated departments'],
+   ['Six elements','people/orgs · facilities · activities · information · money · <b>customer promise</b>',''],
+   ['Customer promise','product · quantity · quality · place · <b>time</b>',''],
+   ['Procurement','what to buy, from whom, on what terms','packaging prices'],
+   ['Operations','convert inputs to output','ingredients → shampoo'],
+   ['Logistics','<b>move and store</b>','cartons factory → warehouse'],
+   ['Distribution','<b>available through channels</b>','allocate to distributors'],
+   ['Value chain','every value activity <b>incl. marketing, service</b>','widest of the six'],
+   ['Nodes / links','places / connections (transport, PO, data, payment)','“a node without reliable links cannot serve”'],
+   ['Tiers','T1 supplies you directly; T2 supplies T1','direction depends on where you stand'],
+   ['Hidden common source','3 Tier 1s on one Tier 2 = <b>one point of failure</b>',''],
+   ['Three flows','physical · information · cash (+ reverse direction)','info moves first and fastest']]},
+ {h:'Lead time, availability, system thinking',
+  note:'The distinctions that carry marks.',
+  rows:[
+   ['Inventory vs availability','owned/recorded vs <b>saleable, right place, right time</b>','Mumbai stock ≠ Guwahati tonight'],
+   ['Dependency','an activity waits for another to finish','dispatch waits for QC release'],
+   ['Local optimisation','one function’s metric ↑, system ↓','6 months of bottles · 500 yogurts'],
+   ['Cheapest carrier','→ late delivery, complaints',''],
+   ['Long batches','→ slow response, unwanted stock',''],
+   ['Finance cuts stock','→ stock-outs, lost sales',''],
+   ['Four outcomes','<b>Availability · Service · Inventory · Total cost</b>','read them together']]},
+ {h:'Session 1B · trade-off method',
+  note:'Five questions, then the closing sentence.',
+  rows:[
+   ['Case method','promise → constraint → options → four-outcome impact → <b>decision rule</b>',''],
+   ['Rain surge','segment the promise; <b>time and capacity</b> are the buffers','+56% orders, 70% riders'],
+   ['Diwali','cap at feasible 11,000, allocate, pre-order the rest','sleeves 10 d > 7 d'],
+   ['Fashion','<b>reallocate</b> before buying','₹60 transfer vs ₹900 + ₹350'],
+   ['Sourcing','dual source; compare <b>landed + system</b> cost','quote ₹18 ≠ landed ₹27'],
+   ['Key account','compare expedite vs penalty; <b>document</b> any split','₹80,000 expedite vs ₹1.5 L penalty'],
+   ['Returns','fix size cause, exchange first, inspect fast','70% size-related'],
+   ['Closing line','We protect ___. We compromise ___. We manage the risk by ___.','']]},
+ {h:'Session 2A · production models',
+  note:'Locate the model by asking: what is complete before the order?',
+  rows:[
+   ['MTS','finished goods wait · <b>forecast risk</b>','toothpaste · bread'],
+   ['ATO','modules wait · <b>component-balancing risk</b>','laptop · birthday cake'],
+   ['MTO','materials & capacity wait · <b>lead-time/capacity risk</b>','L-sofa · wedding cake'],
+   ['ETO','knowledge & suppliers wait · <b>scope/project risk</b>','cold storage · corporate cake'],
+   ['Push','forecast releases work · risk: excess stock','depends on prediction'],
+   ['Pull','order/consumption releases work · risk: delay','depends on response speed'],
+   ['Hybrid','<b>push upstream, pull downstream</b>','pizza · samosa outlet'],
+   ['Decoupling point','forecast-driven → order-driven boundary','upstream = less FG risk, longer wait'],
+   ['Wait vs make','if production > customer wait, work must precede the order','10 min vs 7 days → MTS']]},
+ {h:'Postponement',
+  note:'Delay the commitment that creates variety.',
+  rows:[
+   ['Form','colour, flavour, cut, final processing','paint tinting'],
+   ['Assembly','modules → final product after order','laptop'],
+   ['Packaging','common product, channel/festival sleeve later','gift pack'],
+   ['Fulfilment','pooled stock allocated after demand appears','fashion central stock'],
+   ['Price of it','fast, reliable delayed stage; common parts always available','']]},
+ {h:'Session 2B · channels',
+  note:'Customer · Inventory · Ownership · Fulfilment · Control.',
+  rows:[
+   ['D2C','control & data · exposure: <b>acquisition + fulfilment cost</b>','₹200 on ₹1,000'],
+   ['Retail','trial & immediate possession · exposure: store stock, fixed cost',''],
+   ['Marketplace','reach & aggregation · exposure: <b>fees, returns, limited control</b>','platform FC: seller still funds stock'],
+   ['FMCG distribution','coverage · exposure: multi-node visibility','distributor stock ≠ shelf availability'],
+   ['Quick commerce','proximity · exposure: local stock, density, capacity','speed begins with placement'],
+   ['Pooled vs duplicated','pooling: lower safety stock, wider range, slower','duplication: faster, more capital'],
+   ['Omnichannel','needs <b>shared inventory visibility</b>','BOPIS, ship-from-store']]},
+ {h:'Exam-day block',
+  note:'Read this last.',
+  rows:[
+   ['Earliest failure','= the commitment made without a feasibility check',''],
+   ['Never','promise against recorded stock',''],
+   ['Always','name the risk accepted with any model or channel','']]},
+];
+
+/* =========================================================================
+   ENGINE — do not edit per subject. Everything below is driven by the data
+   file(s) concatenated above this block.
+   ========================================================================= */
+/* ---------- what the data file gave us ---------- */
+const D_TOPICS = typeof TOPICS !=='undefined'?TOPICS :[];
+const D_QUIZ   = typeof QUIZ   !=='undefined'?QUIZ   :[];
+const D_CASES  = typeof CASES  !=='undefined'?CASES  :[];
+const D_LESSON = typeof LESSONS!=='undefined'?LESSONS:null;
+const D_PAPER  = typeof PAPER  !=='undefined'?PAPER  :[];
+const D_CMAP   = typeof CMAP   !=='undefined'?CMAP   :[];
+const D_CALCS  = typeof CALCS  !=='undefined'?CALCS  :{};
+const MODES=[];
+if(D_CASES.length)             MODES.push({id:'exam', label:'✍ Exam Paper',    side:'Caselets'});
+if(D_QUIZ.length)              MODES.push({id:'drill',label:'⚙ Practice Quiz', side:'Sections'});
+if(D_LESSON&&D_TOPICS.length)  MODES.push({id:'learn',label:'◈ Prep Material', side:'Prep sections'});
+if(D_PAPER.length)             MODES.push({id:'paper',label:'✎ Written Paper', side:'Written paper'});
+let MODE=MODES.length?MODES[0].id:'drill';
+
+/* ---------- progression: supply LEVELS / BADGES to override ---------- */
+const LV = typeof LEVELS!=='undefined'?LEVELS:[{xp:0,title:'Intern'},{xp:80,title:'Analyst'},{xp:220,title:'Senior Analyst'},
+  {xp:420,title:'Manager'},{xp:700,title:'Director'},{xp:1000,title:'Chief'}];
+function defaultBadges(){
+  const b=[{id:'b_first',em:'🎯',name:'First Blood',desc:'Answer your first question correctly.'},
+   {id:'b_streak5',em:'🔥',name:'On Fire',desc:'Five correct answers in a row.'},
+   {id:'b_streak10',em:'⚡',name:'Unstoppable',desc:'Ten correct answers in a row.'},
+   {id:'b_streak15',em:'☄️',name:'Untouchable',desc:'Fifteen correct answers in a row.'},
+   {id:'b_trap',em:'🃏',name:'Trap Dodger',desc:'Clear every question marked TRICKY.'}];
+  D_TOPICS.forEach(t=>b.push({id:'b_'+t.id,em:'📘',name:t.name,desc:'Clear every '+t.name+' question.'}));
+  if(D_CASES.length)b.push({id:'b_caselet',em:'🧮',name:'Caselet Cleared',desc:'Clear every MCQ in a single caselet.'});
+  if(D_CASES.some(c=>c.qs.some(q=>q.open))||D_PAPER.length)
+    b.push({id:'b_written',em:'✍️',name:'Long Form',desc:'Open every model answer.'});
+  if(D_LESSON)b.push({id:'b_learn',em:'📖',name:'Fully Revised',desc:'Work through every prep lesson.'});
+  b.push({id:'b_quiz75',em:'🎓',name:'Exam Ready',desc:'Score 75% or more on a full attempt.'});
+  b.push({id:'b_perfect',em:'👑',name:'Flawless',desc:'Score 100% on a full attempt.'});
+  return b;
+}
+const BG = typeof BADGES!=='undefined'?BADGES:defaultBadges();
+const TBADGE={}; D_TOPICS.forEach(t=>{TBADGE[t.id]='b_'+t.id;});
+if(typeof BADGES!=='undefined'){const ids=BG.map(b=>b.id);D_TOPICS.forEach(t=>{if(ids.indexOf('b_'+t.id)<0)delete TBADGE[t.id];});}
+
+/* ---------- derived ---------- */
+const CORE=D_QUIZ.filter(q=>q.core!==0);
+const EXAM_MCQ=D_CASES.reduce((a,c)=>a+c.qs.filter(q=>!q.open).length,0);
+const EXAM_OPEN=D_CASES.reduce((a,c)=>a+c.qs.filter(q=>q.open).length,0);
+const CFG = typeof CONFIG!=='undefined'?CONFIG:{};
+const OPENED={}, LEARNED={};
+let quizState=null, examState=null, LESSON=D_TOPICS.length?D_TOPICS[0].id:null;
+let SCOPE=CORE.length&&CORE.length<D_QUIZ.length?'core':'all', FOCUS=null, MISSED=[];
+let ACTIVE=(SCOPE==='core'?CORE:D_QUIZ).slice();
+let TRAPS=ACTIVE.filter(q=>q.trap).length;
+
+/* =========================================================================
+   SHARED RENDERERS
+   ========================================================================= */
+function tableNode(t){
+  const d=el('div','dtab');
+  d.innerHTML=(t.cap?'<div class="cap">'+t.cap+'</div>':'')+
+    '<div class="sc"><table><thead><tr>'+t.head.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+
+    t.rows.map(r=>'<tr>'+r.map((c,i)=>'<td'+(i?' class="num"':'')+'>'+c+'</td>').join('')+'</tr>').join('')+
+    '</tbody></table></div>';
+  return d;
+}
+function caseletNode(C){
+  const d=el('div','caselet');d.id='case-'+C.id;
+  d.innerHTML='<div class="cl">'+C.cl+'</div><h4>'+C.title+'</h4><div class="brief">'+C.brief+'</div>'+
+    (C.facts?'<div class="facts">'+C.facts.map(f=>'<span>'+f+'</span>').join('')+'</div>':'');
+  (C.tables||[]).forEach(t=>d.appendChild(tableNode(t)));
+  return d;
+}
+function sceneNode(s){
+  const d=el('div','casebox');
+  d.innerHTML='<div class="cl">'+s.cl+'</div><h4>'+s.h+'</h4><p>'+s.body+'</p>';
+  return d;
+}
+function mcqNode(Q,card,onScore){
+  const box=el('div','mcq');
+  const tagLb={apply:'⚙ Apply',case:'🏷 Case',calc:'🧮 Calculate',concept:'◈ Concept'};
+  let head='<span class="tag '+Q.tag+'">'+(tagLb[Q.tag]||'◈ Concept')+'</span>';
+  if(Q.diff)head+='<span class="tag '+Q.diff+'">'+Q.diff+'</span>';
+  if(Q.trap)head+='<span class="tag trap">🃏 tricky</span>';
+  box.innerHTML=head+'<div class="q">'+Q.q+'</div>';
+  if(Q.given)box.appendChild(el('div','givens',Q.given.map(g=>'<span>'+g+'</span>').join('')));
+  const opts=el('div','opts');box.appendChild(opts);
+  const letters=['A','B','C','D','E'],order=shuffle(Q.opts.map((o,i)=>({o,i})));let done=false;
+  order.forEach((item,pos)=>{
+    const b=el('button','opt','<span class="lt">'+letters[pos]+'</span>'+item.o);
+    b.onclick=e=>{
+      if(done)return;done=true;box.dataset.done='1';const ok=item.i===0;
+      [...opts.children].forEach((c,j)=>{c.disabled=true;
+        if(order[j].i===0)c.classList.add('correct');else if(j===pos)c.classList.add('wrong');else c.classList.add('dim');});
+      onAnswer(ok,e.clientX,e.clientY,card);onScore&&onScore(ok);
+      const why=el('div','why','<h5>'+(ok?'Why this is right →':'Why the answer is what it is →')+'</h5><p>'+Q.why+'</p>');
+      box.appendChild(why);requestAnimationFrame(()=>why.classList.add('show'));
+    };
+    opts.appendChild(b);});
+  return box;
+}
+/* a written question — used by the exam caselets and by the written paper */
+function openNode(Q,label,idx,onOpen){
+  const card=el('div','openq');
+  card.innerHTML='<div class="oh"><span class="on">'+label+'</span><span class="om">'+(Q.marks||5)+' marks</span></div>'+
+    '<div class="oq">'+Q.q+'</div>'+(Q.hint?'<p class="hint">💡 '+Q.hint+'</p>':'');
+  const ansBox=el('div','ans');
+  ansBox.innerHTML='<h5>Model answer</h5>'+(Q.svg&&typeof dsSvg==='function'?dsSvg(Q.svg):'')+Q.ans+
+    (Q.rubric?'<div class="rub"><h6>Marking scheme — what the examiner wants</h6><ul>'+
+      Q.rubric.map(r=>'<li>'+r+'</li>').join('')+'</ul></div>':'');
+  const btn=el('button','btn btn-grad btn-rev','Show model answer ↓');
+  btn.onclick=()=>{
+    const open=ansBox.classList.toggle('show');
+    btn.textContent=open?'Hide model answer ↑':'Show model answer ↓';
+    if(open&&!OPENED[idx]){OPENED[idx]=1;buildSidebar();onOpen&&onOpen();}
+  };
+  card.appendChild(btn);card.appendChild(ansBox);
+  return card;
+}
+
+/* ---------- keyboard: answer the first unanswered question ---------- */
+document.addEventListener('keydown',e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName||'')))return;
+  if($('#badgeOvl')||$('#cmapOvl'))return;
+  const map={'1':0,'2':1,'3':2,'4':3,'5':4,'a':0,'b':1,'c':2,'d':3,'e':4};
+  const idx=map[(e.key||'').toLowerCase()];
+  if(idx===undefined)return;
+  const box=[...document.querySelectorAll('.mcq')].find(b=>!b.dataset.done);
+  if(!box)return;
+  const btn=box.querySelectorAll('.opt')[idx];
+  if(!btn||btn.disabled)return;
+  e.preventDefault();
+  btn.scrollIntoView({behavior:reduced?'auto':'smooth',block:'center'});
+  btn.click();
+});
+
+/* =========================================================================
+   MODE · EXAM PAPER
+   ========================================================================= */
+function renderExam(){
+  const m=$('#main');m.innerHTML='';
+  examState={answered:0,correct:0,total:EXAM_MCQ,traps:0,per:{},missed:[]};
+  D_CASES.forEach(c=>examState.per[c.id]={c:0,n:c.qs.filter(q=>!q.open).length,a:0});
+  const traps=D_CASES.reduce((a,c)=>a+c.qs.filter(q=>q.trap).length,0);
+  const intro=el('div','card');
+  intro.innerHTML='<div class="eyebrow">'+(CFG.examEyebrow||'Exam-pattern paper')+'</div>'+
+    '<h1 class="tt">'+(CFG.examTitle||(D_CASES.length+' caselets, '+EXAM_MCQ+' questions'))+' ✍</h1>'+
+    '<div class="sub">'+(CFG.examIntro||'Every question sits under a caselet with its own brief and data tables. Read the table before you read the options.')+'</div>'+
+    (EXAM_OPEN?'<div class="sub" style="margin-top:10px">Plus <b>'+EXAM_OPEN+' open-ended written questions</b> with model answers and a marking scheme each.</div>':'')+
+    '<div class="sub" style="margin-top:10px">Watch for <span class="tag trap" style="margin:0">🃏 tricky</span> — those '+traps+' turn on a distinction that is easy to get backwards. '+
+    'Answer with the mouse or press <b>1–4</b> / <b>A–D</b>.</div>'+
+    '<div class="srcrow">'+D_CASES.map(c=>'<span class="src">'+c.cl+'</span>').join('')+'</div>';
+  m.appendChild(intro);
+  let n=0,on=0;
+  D_CASES.forEach(C=>{
+    m.appendChild(caseletNode(C));
+    C.qs.forEach(Q=>{
+      if(Q.open){
+        on++;
+        m.appendChild(openNode(Q,'Written '+on+' / '+EXAM_OPEN,C.id+'-o'+on,
+          ()=>{if(Object.keys(OPENED).length===EXAM_OPEN+D_PAPER.length)unlock('b_written');}));
+      } else {
+        n++;
+        const card=el('div','qcard');
+        card.appendChild(el('div','qnum','<span>Q'+n+' / '+EXAM_MCQ+'</span>'));
+        card.appendChild(mcqNode(Q,card,ok=>{
+          examState.answered++;examState.per[C.id].a++;
+          if(ok){examState.correct++;examState.per[C.id].c++;if(Q.trap)examState.traps++;}
+          else examState.missed.push(Q);
+          const p=examState.per[C.id];
+          if(p.a===p.n&&p.c===p.n)unlock('b_caselet');
+          if(traps&&examState.traps===traps)unlock('b_trap');
+          buildSidebar();updateFoot();}));
+        m.appendChild(card);
+      }
+    });
+  });
+  const rc=el('div','card hidden');rc.id='resultsCard';m.appendChild(rc);
+  buildFoot();buildSidebar();
+}
+
+/* =========================================================================
+   MODE · PRACTICE QUIZ (drill)
+   ========================================================================= */
+function setScope(mode,id){
+  if(mode==='topic'){SCOPE='topic';FOCUS=id; ACTIVE=D_QUIZ.filter(q=>q.t===id);}
+  else if(mode==='missed'&&MISSED.length){SCOPE='missed';FOCUS=null; ACTIVE=MISSED.slice();}
+  else if(mode==='all'){SCOPE='all';FOCUS=null; ACTIVE=D_QUIZ.slice();}
+  else {SCOPE='core';FOCUS=null; ACTIVE=CORE.slice();}
+  TRAPS=ACTIVE.filter(q=>q.trap).length;
+  renderDrill();
+  window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});
+}
+function renderDrill(){
+  const m=$('#main');m.innerHTML='';
+  quizState={answered:0,correct:0,total:ACTIVE.length,traps:0,per:{},missed:[]};
+  D_TOPICS.forEach(t=>quizState.per[t.id]={c:0,n:0,a:0});
+  ACTIVE.forEach(q=>quizState.per[q.t]&&quizState.per[q.t].n++);
+  const scopeName=FOCUS?(D_TOPICS.find(t=>t.id===FOCUS)||{}).name:null;
+  const intro=el('div','card');
+  intro.innerHTML='<div class="eyebrow">'+(FOCUS?'Focused practice · '+scopeName:(CFG.quizEyebrow||'Practice quiz'))+'</div>'+
+    '<h1 class="tt">'+(FOCUS?scopeName+' 🎯':(CFG.quizTitle||'The full paper'))+' 📈</h1>'+
+    '<div class="sub">'+(FOCUS
+      ? 'Just this section — <b>'+ACTIVE.length+' questions</b>. Use the sidebar to switch sections or go back to the full run.'
+      : '<b>'+ACTIVE.length+' questions</b> across '+D_TOPICS.length+' sections. '+(CFG.quizIntro||'Click any section in the sidebar to drill just that block.'))+'</div>'+
+    '<div class="sub" style="margin-top:10px">The <b>Why</b> panel under each answer is the real revision — it carries the working and the trap that was being set. '+
+    'Watch for <span class="tag trap" style="margin:0">🃏 tricky</span> — those '+TRAPS+' turn on a distinction that is easy to get backwards.</div>'+
+    '<div class="sub" style="margin-top:10px">House rules: <b>no option is ever bolded</b>, and <b>the correct answer is never the longest option</b>. Positions reshuffle every attempt. '+
+    'Answer with the mouse or press <b>1–4</b> / <b>A–D</b>.</div>'+
+    '<div class="srcrow">'+D_TOPICS.map(t=>'<span class="src">'+t.name+'</span>').join('')+'</div>';
+  m.appendChild(intro);
+  let n=0;
+  D_TOPICS.forEach((t,ti)=>{
+    const qs=ACTIVE.filter(q=>q.t===t.id);if(!qs.length)return;
+    const h=el('div','qgroup-h');h.id='grp-'+t.id;
+    h.innerHTML='<span class="gi">'+String(ti+1).padStart(2,'0')+'</span><span class="gt">'+t.name+'</span><span class="gc">'+qs.length+' questions</span>';
+    m.appendChild(h);
+    let lastScene=null;
+    qs.forEach(q=>{n++;
+      if(q.scene&&q.scene!==lastScene){m.appendChild(sceneNode(q.scene));lastScene=q.scene;}
+      if(!q.scene)lastScene=null;
+      const card=el('div','qcard');
+      card.appendChild(el('div','qnum','<span>Q'+n+' / '+ACTIVE.length+'</span>'));
+      card.appendChild(mcqNode(q,card,ok=>{
+        quizState.answered++;quizState.per[q.t].a++;
+        if(ok){quizState.correct++;quizState.per[q.t].c++;if(q.trap)quizState.traps++;}
+        else quizState.missed.push(q);
+        const p=quizState.per[q.t];
+        if(p.a===p.n&&p.c===p.n&&TBADGE[q.t])unlock(TBADGE[q.t]);
+        if(TRAPS&&quizState.traps===TRAPS)unlock('b_trap');
+        buildSidebar();updateFoot();}));
+      m.appendChild(card);});
+  });
+  const rc=el('div','card hidden');rc.id='resultsCard';m.appendChild(rc);
+  buildFoot();buildSidebar();
+}
+
+/* =========================================================================
+   MODE · PREP MATERIAL (lessons + live calculators)
+   ========================================================================= */
+function calcNode(kind,title){
+  const C=D_CALCS[kind]; if(!C)return el('div');
+  const box=el('div','calc');
+  box.innerHTML='<h4>⚡ '+title+'</h4><p class="hint">'+C.hint+'</p>';
+  const inWrap=el('div','cin'), out=el('div','cout');
+  const state={}; C.ins.forEach(i=>state[i.k]=i.def);
+  const redraw=()=>{out.innerHTML=C.run(state);};
+  C.ins.forEach(i=>{
+    const lab=el('label');
+    lab.innerHTML='<span class="nm">'+i.nm+'</span>';
+    let inp,val=null;
+    if(i.type==='select'){
+      inp=el('select');
+      inp.style.cssText='flex:2 1 170px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.12);border-radius:9px;color:#fff;font-family:inherit;font-size:13.5px;padding:7px 10px';
+      i.opts.forEach(([v,lbl])=>{const o=el('option',null,lbl);o.value=v;inp.appendChild(o);});
+      inp.value=i.def;
+      inp.onchange=()=>{state[i.k]=inp.value;redraw();};
+    } else {
+      inp=el('input');
+      inp.type=i.type==='range'?'range':'number';
+      if(i.type==='range'){inp.min=i.min;inp.max=i.max;inp.step=i.step;}
+      inp.value=i.def;
+      val=i.type==='range'?el('span','val',String(i.def)):null;
+      inp.oninput=()=>{const raw=parseFloat(inp.value);state[i.k]=isNaN(raw)?0:raw;if(val)val.textContent=String(state[i.k]);redraw();};
+    }
+    lab.appendChild(inp); if(val)lab.appendChild(val);
+    inWrap.appendChild(lab);
+  });
+  box.appendChild(inWrap);box.appendChild(out);redraw();
+  return box;
+}
+function renderLearn(){
+  const m=$('#main');m.innerHTML='';
+  const L=D_LESSON[LESSON], ti=D_TOPICS.findIndex(x=>x.id===LESSON);
+  if(!L){m.appendChild(el('div','card','<h1 class="tt">No lesson for this section</h1>'));buildSidebar();return;}
+  const head=el('div','card');
+  head.innerHTML='<div class="eyebrow">'+L.eyebrow+' · Prep Material</div>'+
+    '<h1 class="tt">'+L.title+' 📖</h1><div class="sub">'+L.sub+'</div>'+
+    '<div class="sub" style="margin-top:9px">Read it through, drive the <b>live calculators</b> yourself, then take the check at the bottom.</div>';
+  m.appendChild(head);
+  const body=el('div','card');
+  let n=0;
+  L.steps.forEach(st=>{
+    if(st.type==='text'){n++;
+      const d=el('div','lstep');
+      d.innerHTML='<h4><span class="n">'+String(n).padStart(2,'0')+'</span>'+st.title+'</h4><p>'+st.body+'</p>';
+      body.appendChild(d);
+    } else if(st.type==='formula'){
+      const d=el('div','fcard');
+      d.innerHTML='<span class="pill">'+st.pill+'</span><div class="leg">'+
+        st.legend.map(l=>'<div><b class="sym">'+l[0]+'</b><span>'+l[1]+'</span></div>').join('')+'</div>';
+      body.appendChild(d);
+    } else if(st.type==='table'){
+      const d=el('div','ltab');
+      d.innerHTML='<h4>'+st.title+'</h4><div class="sc"><table><thead><tr>'+
+        st.head.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+
+        st.rows.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+      body.appendChild(d);
+    } else if(st.type==='calc'){ body.appendChild(calcNode(st.calc,st.title));
+    } else if(st.type==='watch'){
+      const d=el('div','watch');
+      d.innerHTML='<h5>⚠ '+st.title+'</h5><p>'+st.body+'</p>';
+      body.appendChild(d);
+    }
+  });
+  m.appendChild(body);
+  if(L.check&&L.check.length){
+    const ck=el('div','card');
+    ck.innerHTML='<div class="eyebrow">Check yourself</div><h1 class="tt">'+L.check.length+' quick questions</h1>'+
+      '<div class="sub">Straight from what you just read. Clear them all and this section is marked done in the sidebar.</div>';
+    let got=0;
+    L.check.forEach((q,i)=>{
+      const card=el('div','qcard');
+      card.appendChild(el('div','qnum','<span>Check '+(i+1)+' / '+L.check.length+'</span>'));
+      card.appendChild(mcqNode(q,card,ok=>{
+        if(ok&&++got===L.check.length){
+          LEARNED[LESSON]=true;buildSidebar();
+          if(D_TOPICS.every(x=>LEARNED[x.id]))unlock('b_learn');
+          toast('✅','Section revised','“'+L.title+'” is marked done.');
+        }
+      }));
+      ck.appendChild(card);
+    });
+    const nav=el('div','lnav');
+    const prev=D_TOPICS[ti-1], next=D_TOPICS[ti+1];
+    if(prev){const b=el('button','btn btn-ghost','← '+prev.name);
+      b.onclick=()=>{LESSON=prev.id;renderLearn();window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});};nav.appendChild(b);}
+    nav.appendChild(el('div','sp'));
+    if(next){const b=el('button','btn btn-grad',next.name+' →');
+      b.onclick=()=>{LESSON=next.id;renderLearn();window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});};nav.appendChild(b);}
+    ck.appendChild(nav);
+    m.appendChild(ck);
+  }
+  buildSidebar();
+}
+
+/* =========================================================================
+   MODE · WRITTEN PAPER
+   ========================================================================= */
+function renderPaper(){
+  const m=$('#main');m.innerHTML='';
+  const total=D_PAPER.reduce((a,b)=>a+(b.marks||5),0);
+  const intro=el('div','card');
+  intro.innerHTML='<div class="eyebrow">Written paper</div>'+
+    '<h1 class="tt">'+D_PAPER.length+' long-form questions ✎</h1>'+
+    '<div class="sub"><b>'+D_PAPER.length+' questions · '+total+' marks.</b> '+(CFG.paperIntro||'A scenario, two or three parts, and an answer that has to show its working.')+'</div>'+
+    '<div class="sub" style="margin-top:10px">Work each one on paper <b>first</b> — commit to a recommendation, then open the model answer. '+
+    'Each one ends with a <b>marking scheme</b>: if your version has all the points, the wording does not matter.</div>';
+  m.appendChild(intro);
+  const groups=D_TOPICS.length?D_TOPICS:[{id:null,name:'Questions'}];
+  let n=0;
+  groups.forEach((t,ti)=>{
+    const qs=t.id?D_PAPER.filter(p=>p.t===t.id):D_PAPER;
+    if(!qs.length)return;
+    if(t.id){
+      const h=el('div','qgroup-h');h.id='pgrp-'+t.id;
+      h.innerHTML='<span class="gi">'+String(ti+1).padStart(2,'0')+'</span><span class="gt">'+t.name+'</span>'+
+        '<span class="gc">'+qs.reduce((a,b)=>a+(b.marks||5),0)+' marks</span>';
+      m.appendChild(h);
+    }
+    qs.forEach(P=>{
+      n++;
+      const card=el('div','pq');
+      card.innerHTML='<div class="ph"><span class="pn">Question '+n+' / '+D_PAPER.length+'</span><span class="mk">'+(P.marks||5)+' marks</span></div>'+
+        '<div class="pqt">'+P.title+'</div><p class="sub">'+P.body+'</p>'+
+        (P.parts?'<ol class="parts">'+P.parts.map(x=>'<li>'+x+'</li>').join('')+'</ol>':'');
+      const idx='p'+n;
+      const ansBox=el('div','ans');
+      ansBox.innerHTML='<h5>Model answer</h5>'+(P.svg&&typeof dsSvg==='function'?dsSvg(P.svg):'')+P.ans+
+        (P.rubric?'<div class="rub"><h6>Marking scheme — what the examiner wants</h6><ul>'+
+          P.rubric.map(r=>'<li>'+r+'</li>').join('')+'</ul></div>':'');
+      const btn=el('button','btn btn-grad btn-rev','Show model answer ↓');
+      btn.onclick=()=>{
+        const open=ansBox.classList.toggle('show');
+        btn.textContent=open?'Hide model answer ↑':'Show model answer ↓';
+        if(open&&!OPENED[idx]){OPENED[idx]=1;buildSidebar();
+          if(Object.keys(OPENED).length===EXAM_OPEN+D_PAPER.length)unlock('b_written');}
+      };
+      card.appendChild(btn);card.appendChild(ansBox);
+      m.appendChild(card);
+    });
+  });
+  if(CFG.examDayPlan){
+    const end=el('div','card');
+    end.innerHTML='<div class="eyebrow">Last thing before the exam</div><h1 class="tt">The exam-day plan 🎓</h1>'+
+      '<div class="plan">'+CFG.examDayPlan.map((t,i)=>'<div class="pstep"><span class="pi">'+String(i+1).padStart(2,'0')+'</span><span class="pt">'+t+'</span></div>').join('')+'</div>';
+    m.appendChild(end);
+  }
+  buildSidebar();
+}
+
+/* =========================================================================
+   SIDEBAR · FOOTER · RESULTS
+   ========================================================================= */
+function buildSidebar(){
+  const list=$('#topicList');list.innerHTML='';
+  if(MODE==='exam'){
+    D_CASES.forEach((C,i)=>{
+      const p=examState?examState.per[C.id]:{c:0,n:0,a:0};
+      const opens=C.qs.filter(q=>q.open).length;
+      const d=el('div','topic'+(p.n&&p.a===p.n&&p.c===p.n?' done':''));
+      d.innerHTML='<span class="idx">'+String(i+1).padStart(2,'0')+'</span>'+
+        '<span class="nm">'+C.title.split('—')[0].trim()+'<small>'+p.n+' MCQ'+(opens?' · '+opens+' written':'')+'</small></span>'+
+        '<span class="sc">'+p.c+'/'+p.n+'</span>';
+      d.onclick=()=>{const h=document.getElementById('case-'+C.id);
+        if(h){h.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});d.classList.add('pulse');setTimeout(()=>d.classList.remove('pulse'),600);}};
+      list.appendChild(d);});
+    $('#pbar').style.width=(EXAM_MCQ?(examState?examState.answered:0)/EXAM_MCQ*100:0)+'%';
+    return;
+  }
+  if(MODE==='paper'){
+    const groups=D_TOPICS.length?D_TOPICS:[];
+    groups.forEach((t,i)=>{
+      const qs=D_PAPER.filter(p=>p.t===t.id);if(!qs.length)return;
+      const d=el('div','topic');
+      d.innerHTML='<span class="idx">'+String(i+1).padStart(2,'0')+'</span>'+
+        '<span class="nm">'+t.name+'<small>'+qs.length+' question'+(qs.length>1?'s':'')+' · '+qs.reduce((a,b)=>a+(b.marks||5),0)+' marks</small></span>';
+      d.onclick=()=>{const h=document.getElementById('pgrp-'+t.id);
+        if(h)h.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});};
+      list.appendChild(d);});
+    $('#pbar').style.width=(D_PAPER.length?Object.keys(OPENED).filter(k=>k[0]==='p').length/D_PAPER.length*100:0)+'%';
+    return;
+  }
+  if(MODE==='learn'){
+    D_TOPICS.forEach((t,i)=>{
+      const d=el('div','topic'+(LESSON===t.id?' on':'')+(LEARNED[t.id]?' learned':''));
+      d.innerHTML='<span class="idx">'+String(i+1).padStart(2,'0')+'</span>'+
+        '<span class="nm">'+t.name+'<small>'+(t.kick||'')+'</small></span><span class="chk">✓</span>';
+      d.onclick=()=>{LESSON=t.id;renderLearn();window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});};
+      list.appendChild(d);});
+    $('#pbar').style.width=(D_TOPICS.filter(t=>LEARNED[t.id]).length/D_TOPICS.length*100)+'%';
+    return;
+  }
+  /* drill */
+  if(CORE.length&&CORE.length<D_QUIZ.length){
+    const core=el('div','topic scope'+(SCOPE==='core'?' on':''));
+    core.innerHTML='<span class="idx">◎</span><span class="nm">Core paper<small>'+CORE.length+' questions · every section</small></span>';
+    core.onclick=()=>setScope('core');list.appendChild(core);
+    const all=el('div','topic scope'+(SCOPE==='all'?' on':''));
+    all.innerHTML='<span class="idx">∞</span><span class="nm">Everything<small>'+D_QUIZ.length+' questions · adds the deep cuts</small></span>';
+    all.onclick=()=>setScope('all');list.appendChild(all);
+  } else {
+    const all=el('div','topic scope'+(FOCUS?'':' on'));
+    all.innerHTML='<span class="idx">◎</span><span class="nm">All sections<small>'+D_QUIZ.length+' questions · full paper</small></span>';
+    all.onclick=()=>setScope('all');list.appendChild(all);
+  }
+  D_TOPICS.forEach((t,i)=>{
+    const inScope=ACTIVE.some(q=>q.t===t.id);
+    const p=quizState?quizState.per[t.id]:{c:0,n:0,a:0};
+    const n=inScope?p.n:D_QUIZ.filter(q=>q.t===t.id).length;
+    const d=el('div','topic'+(inScope&&p.a===p.n&&p.n?' done':'')+(t.hot?' hot':'')+(FOCUS===t.id?' on':'')+(inScope?'':' off'));
+    d.innerHTML='<span class="idx">'+String(i+1).padStart(2,'0')+'</span>'+
+      '<span class="nm">'+t.name+(t.hot?' <em class="flame">🔥</em>':'')+'<small>'+(t.kick||'')+'</small></span>'+
+      '<span class="sc">'+(inScope?p.c+'/'+p.n:n)+'</span>';
+    d.onclick=()=>{
+      if(FOCUS===t.id){setScope(CORE.length<D_QUIZ.length?'core':'all');return;}
+      const h=document.getElementById('grp-'+t.id);
+      if(h&&!FOCUS&&inScope){h.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});d.classList.add('pulse');setTimeout(()=>d.classList.remove('pulse'),600);}
+      else setScope('topic',t.id);
+    };
+    d.ondblclick=()=>setScope('topic',t.id);
+    list.appendChild(d);});
+  $('#pbar').style.width=(ACTIVE.length?(quizState?quizState.answered:0)/ACTIVE.length*100:0)+'%';
+}
+
+function scored(){ return MODE==='exam'?examState:(MODE==='drill'?quizState:null); }
+function buildFoot(){
+  let f=$('#footbar');if(f)f.remove();
+  const s=scored(); if(!s)return;
+  f=el('div','footbar');f.id='footbar';
+  f.innerHTML='<div class="fp"><span class="lbl" id="footLbl">0 / '+s.total+' answered · 0 correct</span><div class="bar"><i id="footBar"></i></div></div>';
+  const btn=el('button','btn btn-grad','See Results ↓');btn.id='footBtn';btn.style.opacity=.5;btn.style.pointerEvents='none';btn.onclick=showResults;
+  const rt=el('button','btn btn-ghost','↺ Reshuffle &amp; Retake');
+  rt.onclick=()=>{MODE==='exam'?renderExam():renderDrill();window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});};
+  f.appendChild(btn);f.appendChild(rt);document.body.appendChild(f);
+}
+function updateFoot(){
+  const s=scored();if(!s||!$('#footLbl'))return;
+  $('#footLbl').textContent=s.answered+' / '+s.total+' answered · '+s.correct+' correct'+(G.best?' · best streak '+G.best:'');
+  $('#footBar').style.width=(s.answered/s.total*100)+'%';
+  const btn=$('#footBtn');if(s.answered===s.total){btn.style.opacity=1;btn.style.pointerEvents='auto';}
+}
+function grade(p){
+  if(p>=90)return['Outstanding — exam-ready! 🏆','var(--lime)'];
+  if(p>=75)return['Strong pass — polish the weak spots. ✅','var(--cyan)'];
+  if(p>=60)return['Decent — a focused review will lift this. 📈','var(--gold)'];
+  return['Keep going — reread the Why panels and retake. 🔁','var(--red)'];
+}
+function showResults(){
+  const s=scored();if(!s)return;
+  const{correct,total,per}=s,pct=Math.round(correct/total*100);
+  MISSED=s.missed.slice();
+  if(pct>=75)unlock('b_quiz75'); if(pct===100)unlock('b_perfect');
+  const rc=$('#resultsCard');rc.className='card';rc.innerHTML='';
+  rc.appendChild(el('div',null,'<div class="eyebrow">Results</div><h1 class="tt">Paper complete</h1>'));
+  const R=80,C=2*Math.PI*R;const rw=el('div','ring-wrap');
+  rw.innerHTML='<div class="ring"><svg width="200" height="200" viewBox="0 0 200 200">'+
+    '<circle cx="100" cy="100" r="'+R+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="16"/>'+
+    '<circle id="ringArc" cx="100" cy="100" r="'+R+'" fill="none" stroke="url(#gg)" stroke-width="16" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+C+'"/>'+
+    '<defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22D3EE"/><stop offset="0.5" stop-color="#8B5CF6"/><stop offset="1" stop-color="#F472B6"/></linearGradient></defs></svg>'+
+    '<div class="mid"><div class="big" id="ringPct">0%</div><div class="sm">'+correct+' / '+total+'</div></div></div>';
+  const g=grade(pct),gs=el('div');
+  gs.innerHTML='<div class="grade" style="color:'+g[1]+'">'+g[0]+'</div><div class="sub">You answered '+correct+' of '+total+' correctly · longest streak <b>'+G.best+'</b> · tricky questions cleared <b>'+s.traps+'</b>.</div>';
+  rw.appendChild(gs);rc.appendChild(rw);
+  const meters=el('div','meters');let weak=null;
+  const rows = MODE==='exam'
+    ? D_CASES.map(c=>({id:c.id,name:c.cl+' · '+c.title.split('—')[0].trim(),p:per[c.id]}))
+    : D_TOPICS.map(t=>({id:t.id,name:t.name,p:per[t.id]}));
+  rows.forEach(r=>{const p=r.p;if(!p||!p.n)return;const ratio=p.c/p.n;
+    if(weak===null||ratio<weak.r)weak={id:r.id,name:r.name,r:ratio};
+    const mt=el('div','meter');
+    mt.innerHTML='<div class="top"><span>'+r.name+'</span><span class="sc">'+p.c+'/'+p.n+'</span></div><div class="bar"><i data-w="'+(ratio*100)+'"></i></div>';
+    meters.appendChild(mt);});
+  rc.appendChild(meters);
+  if(weak&&weak.r<1){
+    const w=el('div','watch');
+    w.innerHTML='<h5>Weakest block: '+weak.name+'</h5><p style="color:#ffd9e0">Reread the Why panels there'+(D_CMAP.length?', then check the matching row set in <b>📋 THE MAP</b>':'')+'.'+
+      (MODE==='drill'?' <a style="color:var(--cyan);cursor:pointer" id="goWeak">Drill just this section →</a>':'')+'</p>';
+    rc.appendChild(w);}
+  const row=el('div','row-btns');
+  if(MODE==='drill'&&MISSED.length){
+    const dr=el('button','btn btn-grad','🎯 Drill the '+MISSED.length+' I missed');
+    dr.onclick=()=>setScope('missed');row.appendChild(dr);
+  }
+  const rt=el('button','btn '+(MODE==='drill'&&MISSED.length?'btn-ghost':'btn-grad'),'↺ Reshuffle &amp; Retake');
+  rt.onclick=()=>{MODE==='exam'?renderExam():renderDrill();window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});};
+  row.appendChild(rt);
+  MODES.filter(x=>x.id!==MODE).forEach(x=>{
+    const b=el('button','btn btn-ghost',x.label+' →');b.onclick=()=>setMode(x.id);row.appendChild(b);});
+  if(D_CMAP.length){const mp=el('button','btn btn-ghost','📋 Open the map');mp.onclick=()=>$('#hMap').click();row.appendChild(mp);}
+  rc.appendChild(row);
+  rc.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
+  requestAnimationFrame(()=>{
+    const arc=$('#ringArc');arc.style.transition=reduced?'none':'stroke-dashoffset 1.1s var(--spring)';
+    arc.style.strokeDashoffset=C*(1-pct/100);
+    meters.querySelectorAll('.bar i').forEach((b,i)=>setTimeout(()=>b.style.width=b.dataset.w+'%',reduced?0:120+i*80));
+    const node=$('#ringPct');
+    if(reduced)node.textContent=pct+'%';
+    else{const t0=performance.now();(function tk(now){const p=Math.min(1,(now-t0)/1100);node.textContent=Math.round(pct*p)+'%';if(p<1)requestAnimationFrame(tk);})(t0);}
+  });
+  const wb=$('#goWeak');if(wb)wb.onclick=()=>setScope('topic',weak.id);
+  if(pct>=75){sfxFanfare();confetti(140);crackers(innerWidth*0.5,innerHeight*0.38,14);mega(pct===100?'👑':'🎉',true);bigCall(pct===100?'FLAWLESS! 👑':'WELL PLAYED! 🎉');}
+  else{sfxSad();mega('😬',false);}
+}
+
+/* ---------- mode toggle ---------- */
+function renderModeToggle(){
+  const t=$('#mTog');
+  if(MODES.length<2){t.style.display='none';return;}
+  t.innerHTML='';
+  MODES.forEach(x=>{
+    const b=el('button',x.id===MODE?'on':'',x.label);
+    b.dataset.mode=x.id;b.onclick=()=>setMode(x.id);
+    t.appendChild(b);});
+}
+function setMode(m){
+  if(MODE===m)return;
+  MODE=m;
+  renderModeToggle();
+  const fb=$('#footbar'); if(fb) fb.style.display=(m==='exam'||m==='drill')?'':'none';
+  const def=(MODES.find(x=>x.id===m)||{}).side||'Sections';
+  $('#sideH').textContent=def;
+  if(m==='exam')renderExam(); else if(m==='learn')renderLearn(); else if(m==='paper')renderPaper(); else renderDrill();
+  window.scrollTo({top:0,behavior:reduced?'auto':'smooth'});
+}
+
+/* ---------- badges panel ---------- */
+$('#hBadge').onclick=()=>{
+  if($('#badgeOvl')||$('#cmapOvl'))return;
+  const ovl=el('div','ovl');ovl.id='badgeOvl';
+  const card=el('div','card');
+  card.innerHTML='<div class="eyebrow">Achievements</div><h1 class="tt">Your badges — '+Object.keys(G.badges).length+' / '+BG.length+'</h1>'+
+    '<div class="sub">Earned by clearing sections, dodging the tricky questions, running streaks and scoring high on a full attempt.</div>';
+  const grid=el('div','badgegrid');
+  BG.forEach(b=>{const c=el('div','bcard'+(G.badges[b.id]?' unlocked':''));
+    c.innerHTML='<div class="em">'+(G.badges[b.id]?b.em:'🔒')+'</div><div class="bn">'+b.name+'</div><div class="bd">'+b.desc+'</div>';
+    grid.appendChild(c);});
+  card.appendChild(grid);
+  const row=el('div','row-btns');
+  const bk=el('button','btn btn-grad','← Back');const close=()=>ovl.remove();
+  bk.onclick=close;row.appendChild(bk);card.appendChild(row);
+  const x=el('button','x','×');x.onclick=close;
+  ovl.appendChild(x);ovl.appendChild(card);
+  ovl.onclick=e=>{if(e.target===ovl)close();};
+  document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc);}});
+  document.body.appendChild(ovl);
+};
+
+/* ---------- the map (cheat-sheet) ---------- */
+$('#hMap').onclick=()=>{
+  if(!D_CMAP.length||$('#cmapOvl'))return;
+  const ovl=el('div','ovl');ovl.id='cmapOvl';
+  const card=el('div','card');
+  card.innerHTML='<div class="eyebrow">Reference</div><h1 class="tt">'+(CFG.mapTitle||'The Map')+' 📋</h1>'+
+    '<div class="sub">'+(CFG.mapIntro||'The whole course on one page. <b>Bold</b> marks the bit that usually carries the mark; the blocks marked ★ are the ones worth reading last, on the morning of the paper.')+'</div>';
+  D_CMAP.forEach(b=>{
+    const blk=el('div','cm-block');
+    blk.innerHTML='<h4>'+b.h+'</h4><p class="cm-note">'+b.note+'</p>';
+    const sc=el('div','cm-scroll');
+    const cells=b.rows.map(r=>r.filter(c=>c!=='')), cols=Math.max(...cells.map(r=>r.length));
+    sc.innerHTML='<table><tbody>'+cells.map(r=>
+      '<tr>'+r.map((c,i)=>{
+        const span=(i===r.length-1&&r.length<cols)?' colspan="'+(cols-i)+'"':'';
+        return '<td'+span+'>'+c+'</td>';
+      }).join('')+'</tr>').join('')+'</tbody></table>';
+    blk.appendChild(sc);card.appendChild(blk);
+  });
+  const row=el('div','row-btns');
+  const bk=el('button','btn btn-grad','← Back');const close=()=>ovl.remove();
+  bk.onclick=close;row.appendChild(bk);card.appendChild(row);
+  const x=el('button','x','×');x.onclick=close;
+  ovl.appendChild(x);ovl.appendChild(card);
+  ovl.onclick=e=>{if(e.target===ovl)close();};
+  document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){close();document.removeEventListener('keydown',esc);}});
+  document.body.appendChild(ovl);
+};
+
+/* =========================================================================
+   OPTIONAL HELPER · supply & demand diagram for written answers
+   Use in a PAPER or open question as   svg:{d:0.2,s:-0.3,cap:'…'}
+   d / s  = shift size, positive = rightward.   line:{p,label} draws a
+   price ceiling or floor and marks the Qd / Qs gap.
+   ========================================================================= */
+function dsSvg(o){
+  const W=430,H=300,X0=56,X1=390,Y0=34,Y1=250;
+  const mx=q=>X0+q*(X1-X0), my=p=>Y1-p*(Y1-Y0);
+  const dP=(q,d)=>0.9-0.8*q+d, sP=(q,s)=>0.1+0.8*q-s;
+  const eq=(d,s)=>{const q=(0.8+d+s)/1.6;return{q,p:0.1+0.8*q-s};};
+  const line=(f,a)=>'M '+mx(0)+' '+my(f(0,a))+' L '+mx(1)+' '+my(f(1,a));
+  const d=o.d||0, s=o.s||0, e0=eq(0,0), e1=eq(d,s);
+  let g='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" role="img" aria-label="Supply and demand diagram">'+
+    '<defs><clipPath id="cp'+(dsSvg.n=(dsSvg.n||0)+1)+'"><rect x="'+X0+'" y="'+Y0+'" width="'+(X1-X0)+'" height="'+(Y1-Y0)+'"/></clipPath></defs>'+
+    '<g clip-path="url(#cp'+dsSvg.n+')">';
+  g+='<path d="'+line(dP,0)+'" stroke="#22D3EE" stroke-width="2.4" fill="none"/>'+
+     '<path d="'+line(sP,0)+'" stroke="#FBBF24" stroke-width="2.4" fill="none"/>';
+  if(d)g+='<path d="'+line(dP,d)+'" stroke="#22D3EE" stroke-width="2.4" fill="none" stroke-dasharray="7 5"/>';
+  if(s)g+='<path d="'+line(sP,s)+'" stroke="#FBBF24" stroke-width="2.4" fill="none" stroke-dasharray="7 5"/>';
+  const dot=(q,p,c,r)=>'<circle cx="'+mx(q)+'" cy="'+my(p)+'" r="'+(r||5)+'" fill="'+c+'"/>';
+  const dash=(q,p,c)=>'<path d="M '+X0+' '+my(p)+' L '+mx(q)+' '+my(p)+' L '+mx(q)+' '+Y1+'" stroke="'+c+'" stroke-width="1.2" stroke-dasharray="3 4" fill="none" opacity=".6"/>';
+  if(o.line){
+    const lp=o.line.p, qd=(0.9-lp)/0.8, qs=(lp-0.1)/0.8;
+    g+='<path d="M '+X0+' '+my(lp)+' L '+X1+' '+my(lp)+'" stroke="#FB7185" stroke-width="2.2" stroke-dasharray="8 4" fill="none"/>'+
+       '<path d="M '+mx(Math.min(qd,qs))+' '+my(lp)+' L '+mx(Math.max(qd,qs))+' '+my(lp)+'" stroke="#FB7185" stroke-width="7" opacity=".3" fill="none"/>'+
+       dot(qs,lp,'#FB7185',4)+dot(qd,lp,'#FB7185',4)+
+       '<text x="'+mx(qs)+'" y="'+(my(lp)+20)+'" fill="#FB7185" font-size="11" text-anchor="middle">Qs</text>'+
+       '<text x="'+mx(qd)+'" y="'+(my(lp)+20)+'" fill="#FB7185" font-size="11" text-anchor="middle">Qd</text>';
+  }
+  g+=dash(e0.q,e0.p,'#9AA6C9')+dot(e0.q,e0.p,'#E7ECFF');
+  if(d||s)g+=dash(e1.q,e1.p,'#4ADE80')+dot(e1.q,e1.p,'#4ADE80',6);
+  g+='</g>';
+  g+='<path d="M '+X0+' '+Y0+' L '+X0+' '+Y1+' L '+X1+' '+Y1+'" stroke="#9AA6C9" stroke-width="1.6" fill="none"/>'+
+     '<text x="'+(X0-8)+'" y="'+(Y0+10)+'" fill="#9AA6C9" font-size="12" text-anchor="end">P</text>'+
+     '<text x="'+X1+'" y="'+(Y1+20)+'" fill="#9AA6C9" font-size="12" text-anchor="end">Q</text>'+
+     '<text x="'+(mx(1)-4)+'" y="'+(my(dP(1,0))-8)+'" fill="#22D3EE" font-size="12" text-anchor="end">D</text>'+
+     '<text x="'+(mx(1)-4)+'" y="'+(my(sP(1,0))+16)+'" fill="#FBBF24" font-size="12" text-anchor="end">S</text>';
+  if(d)g+='<text x="'+(mx(1)-4)+'" y="'+(my(dP(1,d))+(d>0?-8:16))+'" fill="#22D3EE" font-size="12" text-anchor="end">D₂</text>';
+  if(s)g+='<text x="'+(mx(1)-4)+'" y="'+(my(sP(1,s))+(s>0?16:-8))+'" fill="#FBBF24" font-size="12" text-anchor="end">S₂</text>';
+  if(o.line)g+='<text x="'+(X0+8)+'" y="'+(my(o.line.p)-8)+'" fill="#FB7185" font-size="12">'+o.line.label+'</text>';
+  g+='</svg>';
+  return '<div class="dsg">'+g+'<div class="cap">'+(o.cap||'')+'</div></div>';
+}
+
+/* ---------- init ---------- */
+if(!D_CMAP.length)$('#hMap').style.display='none';
+renderModeToggle();
+$('#sideH').textContent=(MODES.find(x=>x.id===MODE)||{}).side||'Sections';
+renderHUD();
+if(MODE==='exam')renderExam(); else if(MODE==='learn')renderLearn(); else if(MODE==='paper')renderPaper(); else renderDrill();
+</script>
+</body>
+</html>
